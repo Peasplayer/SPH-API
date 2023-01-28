@@ -4,15 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Peasplayer",
   "license": "ISC",
   "dependencies": {
+    "@3846masa/axios-cookiejar-support": "^4.0.6",
+    "axios": "^1.2.6",
     "crypto-js": "^4.1.1",
     "jssoup": "^0.0.15",
-    "node-fetch": "^2.6.8",
-    "request": "^2.88.2"
+    "tough-cookie": "^4.1.2"
+  },
+  "devDependencies": {
+    "log-that-http": "^1.0.1"
   }
 }
