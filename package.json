@@ -1,22 +1,21 @@
 {
-  "name": "schulportalapi",
+  "name": "sph-api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
+  "type": "module",
   "keywords": [],
   "author": "Peasplayer",
   "license": "ISC",
   "dependencies": {
-    "@3846masa/axios-cookiejar-support": "^4.0.6",
-    "axios": "^1.2.6",
-    "crypto-js": "^4.1.1",
-    "jssoup": "^0.0.15",
-    "tough-cookie": "^4.1.2"
-  },
-  "devDependencies": {
-    "log-that-http": "^1.0.1"
+    "crypto-js": "^4.2.0",
+    "fast-html-parser": "^1.0.1",
+    "fetch-cookie": "^3.0.1",
+    "node-fetch": "^3.3.2",
+    "node-fetch-cookies": "^2.1.1",
+    "node-jsencrypt": "^1.0.0"
   }
 }
