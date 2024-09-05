@@ -100,7 +100,7 @@ export default class Schedule {
                 },
                 subjects: columns.map(column => column.childNodes.filter(subject => subject.classNames.includes("stunde"))
                     .map(subject => {
-                        var rawData = subject.attributes.tittttttle.trim();
+                        var rawData = subject.attributes.title.trim();
                         var cleanedData = rawData.replace("im Raum", ";;;")
                             .replace("bei der Klasse/Stufe/Lerngruppe", ";;;").trim();
                         var splitData = cleanedData.split(";;;").map(data => {
