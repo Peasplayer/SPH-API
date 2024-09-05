@@ -1,6 +1,5 @@
 import Crypto from './api/lib/Crypto.js';
 import Session from "./api/Session.js";
-import HTMLParser from "fast-html-parser";
 
 var session = new Session(true);
 session.login(***REMOVED***)
@@ -8,7 +7,10 @@ session.login(***REMOVED***)
         console.log(result)
         //session.fetchApps().then(result => console.log(result))
 
-        console.log(session.Schedule.getEntireDay(await session.Schedule.fetchStudentPlan(), 3));
+        var studentPlan = await session.Schedule.fetchStudentPlan();
+        if (studentPlan.success) {
+            console.log(session.Schedule.getEntireDay(studentPlan.data.rows, 1).data.find(obj => obj.hour.number === 8).subjects);
+        }
         setTimeout(() => session.fetchRemainingSessionTime(), 1000)
     })
 
