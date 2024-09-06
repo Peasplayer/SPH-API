@@ -117,7 +117,7 @@ export default class Session {
     async keepSessionAlive() {
         try {
             var data = await this.fetchRemainingSessionTime();
-            if (data === undefined || data === "" || data <= 0 || data === 300)
+            if (!data.success || data.data === undefined || data.data === "" || data.data <= 0 || data.data === 300)
                 return new ReturnObject(false, 5);
 
             this._keepAliveCallback = setTimeout(() => this.keepSessionAlive(), data * 1000);
@@ -136,11 +136,12 @@ export default class Session {
 
     static async fetchLanguage() {
         try {
-            if (this._cache.language !== undefined && this._cache.language.isValid())
-                return new ReturnObject(true, 0, this._cache.language.value);
+            if (this._cache.language === undefined || !this._cache.language.isValid()) {
+                var request = await fetch("https://login.schulportal.hessen.de/static/languages/de.json");
+                this._cache.language = new CacheEntry(await request.json())
+            }
 
-            var request = await fetch("https://login.schulportal.hessen.de/static/languages/de.json");
-            return new ReturnObject(true, 0, this._cache.language = new CacheEntry(await request.json()));
+            return new ReturnObject(true, 0, this._cache.language.value);
         }
         catch (err) {
             return new ReturnObject(false, -1, err);
@@ -149,11 +150,12 @@ export default class Session {
 
     static async fetchSchoolList() {
         try {
-            if (this._cache.schoolList !== undefined && this._cache.schoolList.isValid())
-                return new ReturnObject(true, 0, this._cache.schoolList.value);
+            if (this._cache.schoolList === undefined || !this._cache.schoolList.isValid()) {
+                var request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist");
+                this._cache.schoolList = new CacheEntry(await request.json())
+            }
 
-            var request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist");
-            return new ReturnObject(true, 0, this._cache.schoolList = new CacheEntry(await request.json()));
+            return new ReturnObject(true, 0, this._cache.schoolList.value);
         }
         catch (err) {
             return new ReturnObject(false, -1, err);
@@ -162,11 +164,12 @@ export default class Session {
 
     static async fetchSchoolData(id) {
         try {
-            if (this._cache.schoolData[id] !== undefined && this._cache.schoolData[id].isValid())
-                return new ReturnObject(true, 0, this._cache.schoolData[id].value);
+            if (this._cache.schoolData[id] === undefined || !this._cache.schoolData[id].isValid()) {
+                var request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist");
+                this._cache.schoolData[id] = new CacheEntry(await request.json())
+            }
 
-            var request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=school&i=" + id);
-            return new ReturnObject(true, 0, this._cache.schoolData[id] = new CacheEntry(await request.json()));
+            return new ReturnObject(true, 0, this._cache.schoolData[id].value);
         }
         catch (err) {
             return new ReturnObject(false, -1, err);

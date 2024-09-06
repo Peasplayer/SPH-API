@@ -1,6 +1,11 @@
 import Crypto from './api/lib/Crypto.js';
 import Session from "./api/Session.js";
 
+/*Session.fetchSchoolList().then(res => {
+    if (res.success)
+        console.log(res.data.find(cat => cat.Name.includes("Wetteraukreis")))
+})*/
+
 var session = new Session(true);
 session.login(***REMOVED***)
     .then(async result => {
@@ -11,7 +16,8 @@ session.login(***REMOVED***)
         if (studentPlan.success) {
             console.log(session.Schedule.getEntireDay(studentPlan.data.rows, 1).data.find(obj => obj.hour.number === 8).subjects);
         }
-        setTimeout(() => session.fetchRemainingSessionTime(), 1000)
+
+        setTimeout(() => session.keepSessionAlive(), 1000);
     })
 
 
