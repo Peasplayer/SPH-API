@@ -1,5 +1,6 @@
 import Crypto from './api/lib/Crypto.js';
 import Session from "./api/Session.js";
+import credentials from './credentials.json';
 
 /*Session.fetchSchoolList().then(res => {
     if (res.success)
@@ -7,7 +8,7 @@ import Session from "./api/Session.js";
 })*/
 
 var session = new Session(true);
-session.login(***REMOVED***)
+session.login(credentials["1"])
     .then(async result => {
         console.log(result)
         //session.fetchApps().then(result => console.log(result))
