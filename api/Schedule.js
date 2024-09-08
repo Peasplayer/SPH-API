@@ -11,12 +11,12 @@ export default class Schedule {
     }
 
     async fetchStudentPlan() {
-        /*
-        var file = fs.readFileSync("./BECK.htm", {encoding: 'utf8'});
-        var parsed = HTMLParser.parse(file);//(await req.text());
-        */
-
         try {
+            /*
+            var file = fs.readFileSync("./BECK.htm", {encoding: 'utf8'});
+            var parsed = HTMLParser.parse(file);//(await req.text());
+            */
+
             var req = await this.session.fetch("https://start.schulportal.hessen.de/stundenplan.php", { headers: Session.Headers });
             var parsed = HTMLParser.parse(await req.text());
             parsed.removeWhitespace();
@@ -24,7 +24,7 @@ export default class Schedule {
             if (plan !== undefined && plan !== null) {
                 var ownPlan = parsed.querySelector("#own");
                 return new ReturnObject(true, 0, {
-                    type: "all",
+                    type: "own",
                     details: this._parsePlanDetails(ownPlan),
                     rows: this._parseScheduleRows(plan.childNodes)
                 });
@@ -101,36 +101,33 @@ export default class Schedule {
                 subjects: columns.map(column => column.childNodes.filter(subject => subject.classNames.includes("stunde"))
                     .map(subject => {
                         var rawData = subject.attributes.title.trim();
-                        var cleanedData = rawData.replace("im Raum", ";;;")
-                            .replace("bei der Klasse/Stufe/Lerngruppe", ";;;").trim();
-                        var splitData = cleanedData.split(";;;").map(data => {
-                            data = data.trim()
-                            return data === "" ? undefined : data;
-                        });
-
-                        var currentDataIndex = 0;
                         var data = {};
-                        data.subject = cleanedData.startsWith("im Raum") || cleanedData.startsWith("bei der Klasse/Stufe/Lerngruppe") ? undefined : splitData[currentDataIndex];
-                        currentDataIndex++;
-                        if (rawData.includes("im Raum")) {
-                            data.room = splitData[currentDataIndex];
-                            currentDataIndex++;
-                        }
-                        else
-                            data.room = undefined;
-                        if (rawData.includes("bei der Klasse/Stufe/Lerngruppe")) {
-                            data.group = splitData[currentDataIndex];
-                            currentDataIndex++;
-                        }
-                        else
-                            data.group = undefined;
 
-                        data.teacher = subject.querySelector("small").text.trim()
+                        data.teacher = subject.querySelector("small")?.text?.trim()
                         if (data.teacher === "")
                             data.teacher = undefined;
                         data.id = subject.attributes['data-mix'];
                         data.span = column.attributes.rowspan;
                         data.rawTitle = subject.attributes.title;
+
+                        var inRoom = rawData.includes("im Raum");
+                        var withClass = rawData.includes("bei der Klasse/Stufe/Lerngruppe");
+                        var inWeeks = rawData.search(/in .*-Wochen/g) !== -1;
+
+                        if (!inRoom && !withClass && !inWeeks) {
+                            data.subject = rawData;
+                            return data;
+                        }
+
+                        data.subject = inRoom ? rawData.match(/(.*)(?= im Raum)/g)?.at(0) :
+                            (withClass ? rawData.match(/(.*)(?= bei der Klasse\/Stufe\/Lerngruppe)/g)?.at(0) :
+                                rawData.match(/(.*)(?= in .*-Wochen)/g)?.at(0));
+                        data.room = !withClass && !inWeeks ? rawData.match(/(?<=im Raum )(.*)/g)?.at(0) :
+                            (withClass ? rawData.match(/(?<=im Raum )(.*)(?= bei der Klasse\/Stufe\/Lerngruppe)/g)?.at(0) :
+                                rawData.match(/(?<=im Raum )(.*)(?= in .*-Wochen)/g)?.at(0));
+                        data.group = !inWeeks ? rawData.match(/(?<=bei der Klasse\/Stufe\/Lerngruppe )(.*)/g)?.at(0) :
+                            rawData.match(/(?<=bei der Klasse\/Stufe\/Lerngruppe )(.*)(?= in .*-Wochen)/g)?.at(0);
+                        data.week = rawData.match(/(?<=in )(.*)(?=-Wochen)/g)?.at(0);
                         return data;
                     }))
             };
