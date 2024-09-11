@@ -1,12 +1,9 @@
-import nodeFetch from 'node-fetch';
 import fetchCookie from 'fetch-cookie';
 
 import Crypto from "./lib/Crypto.js";
 import CacheEntry from "./lib/CacheEntry.js";
 import Schedule from "./Schedule.js";
 import ReturnObject from "./lib/ReturnObject.js";
-
-const fetch = fetchCookie(nodeFetch);
 
 export default class Session {
     fetch;
@@ -19,9 +16,9 @@ export default class Session {
 
     Schedule;
 
-    constructor() {
+    constructor(fetchMethod) {
         this.cookieJar = new fetchCookie.toughCookie.CookieJar();
-        this.fetch = fetchCookie(nodeFetch, this.cookieJar);
+        this.fetch = fetchCookie(fetchMethod, this.cookieJar);
         this.sessionKey = Crypto.encryptAES(Crypto.randomUUID(), Crypto.randomUUID());
 
         this.Schedule = new Schedule(this);

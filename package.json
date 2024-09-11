@@ -1,6 +1,6 @@
 {
   "name": "sph-api",
-  "version": "0.0.1",
+  "version": "0.0.1-clean",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -10,7 +10,6 @@
   "dependencies": {
     "crypto-js": "^4.2.0",
     "fetch-cookie": "^3.0.1",
-    "node-fetch": "^3.3.2",
     "node-fetch-cookies": "^2.1.1",
     "node-html-parser": "^6.1.13",
     "node-jsencrypt": "^1.0.0"

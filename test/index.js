@@ -1,14 +1,15 @@
 import Crypto from '../src/lib/Crypto.js';
 import Session from "../src/Session.js";
 import fs from "node:fs";
-const credentials = JSON.parse(fs.readFileSync('../credentials.json', 'utf8'));
+
+const credentials = JSON.parse(fs.readFileSync('../test/credentials.json', 'utf8'));
 
 /*Session.fetchSchoolList().then(res => {
     if (res.success)
         console.log(res.data.find(cat => cat.Name.includes("Wetteraukreis")))
 })*/
 
-var session = new Session(true);
+var session = new Session(fetch);
 session.login(credentials["2"])
     .then(async result => {
         console.log(result)
