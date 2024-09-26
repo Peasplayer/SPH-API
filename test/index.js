@@ -1,6 +1,7 @@
-import Crypto from '../src/lib/Crypto.js';
 import Session from "../src/Session.js";
 import fs from "node:fs";
+import DefaultCrypto from "../default/DefaultCrypto.js";
+import DefaultFetchWrapper from "../default/DefaultFetchWrapper.js";
 
 const credentials = JSON.parse(fs.readFileSync('../test/credentials.json', 'utf8'));
 
@@ -9,7 +10,7 @@ const credentials = JSON.parse(fs.readFileSync('../test/credentials.json', 'utf8
         console.log(res.data.find(cat => cat.Name.includes("Wetteraukreis")))
 })*/
 
-var session = new Session(fetch);
+var session = new Session(new DefaultCrypto(), new DefaultFetchWrapper());
 session.login(credentials["2"])
     .then(async result => {
         console.log(result)
@@ -20,7 +21,7 @@ session.login(credentials["2"])
             console.log(session.Schedule.getEntireDay(studentPlan.data.rows, 1).data.find(obj => obj.hour.number === 8).subjects);
         }
 
-        setTimeout(() => session.keepSessionAlive(), 1000);
+        setTimeout(async () => console.log(await session.keepSessionAlive()), 1000);
     })
 
 

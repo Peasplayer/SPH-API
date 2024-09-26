@@ -1,13 +1,10 @@
-import fetchCookie from 'fetch-cookie';
-
-import Crypto from "./lib/Crypto.js";
 import CacheEntry from "./lib/CacheEntry.js";
 import Schedule from "./Schedule.js";
 import ReturnObject from "./lib/ReturnObject.js";
 
 export default class Session {
-    fetch;
-    cookieJar;
+    crypto;
+    fetchWrapper;
     sessionKey;
     sessionId;
     credentials;
@@ -16,10 +13,10 @@ export default class Session {
 
     Schedule;
 
-    constructor(fetchMethod) {
-        this.cookieJar = new fetchCookie.toughCookie.CookieJar();
-        this.fetch = fetchCookie(fetchMethod, this.cookieJar);
-        this.sessionKey = Crypto.encryptAES(Crypto.randomUUID(), Crypto.randomUUID());
+    constructor(crypto, fetchWrapper) {
+        this.crypto = crypto;
+        this.fetchWrapper = fetchWrapper;
+        this.sessionKey = this.crypto.encryptAES(this.crypto.randomUUID(), this.crypto.randomUUID());
 
         this.Schedule = new Schedule(this);
     }
@@ -30,7 +27,7 @@ export default class Session {
                 return new ReturnObject(false, 1);
             this.credentials = credentials;
 
-            var loginReq = await this.fetch("https://login.schulportal.hessen.de/?i=" + credentials.schoolId, {
+            var loginReq = await this.fetchWrapper.fetch("https://login.schulportal.hessen.de/?i=" + credentials.schoolId, {
                 "method": "POST",
                 "body": encodeURI(`url=&timezone=2&skin=sp&user2=${credentials.username}&user=${credentials.schoolId}.${credentials.username}&password=${credentials.password + ""}`),
                 "headers": Session.Headers,
@@ -40,22 +37,25 @@ export default class Session {
             if (login.result !== 1)
                 return new ReturnObject(false, 2, (await Session.fetchLanguage()).data["PE" + login.error]);
 
-            var connectReq = await this.fetch("https://connect.schulportal.hessen.de", { headers: Session.Headers });
+            var connectReq = await this.fetchWrapper.fetch("https://connect.schulportal.hessen.de", { headers: Session.Headers });
             var connectRes = await connectReq.text();
-            if (connectRes.startsWith("{") && JSON.parse(connectRes).result !== 1) {
-                return new ReturnObject(false, 2, (await Session.fetchLanguage()).data["PE" + login.error]);
+            if (connectRes.startsWith("{")) {
+                var connectJson = JSON.parse(connectRes);
+                if (connectJson.result !== 1)
+                    return new ReturnObject(false, 2, (await Session.fetchLanguage(this.fetchWrapper.fetch))
+                        .data["PE" + connectJson.error]);
             }
 
-            this.sessionId = (await this.cookieJar.getCookies("https://schulportal.hessen.de")).find(cookie => cookie.key === "sid").value;
+            this.sessionId = (await this.fetchWrapper.getCookie("schulportal.hessen.de", "sid")).value;
             await this.keepSessionAlive();
 
-            var publicKey = (await (await this.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaPublicKey")).json()).publickey;
-            var handshakeReq = await this.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaHandshake&s=" + Math.floor(Math.random() * 2000), {
+            var publicKey = (await (await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaPublicKey")).json()).publickey;
+            var handshakeReq = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaHandshake&s=" + Math.floor(Math.random() * 2000), {
                 "method": "POST",
-                "body": "key=" + encodeURIComponent(Crypto.encryptRSA(this.sessionKey, publicKey)),
+                "body": "key=" + encodeURIComponent(this.crypto.encryptRSA(this.sessionKey, publicKey)),
                 "headers": Session.Headers
             });
-            var decryptedChallenge = Crypto.decryptAES((await handshakeReq.json()).challenge, this.sessionKey);
+            var decryptedChallenge = this.crypto.decryptAES((await handshakeReq.json()).challenge, this.sessionKey);
             if (decryptedChallenge !== this.sessionKey)
                 return new ReturnObject(false, 3);
 
@@ -68,8 +68,8 @@ export default class Session {
 
     // NOT USE
     async fetchApps() {
-        var request = await this.fetch("https://start.schulportal.hessen.de/startseite.php?a=ajax&f=apps", { headers: Session.Headers });
-        var test = await this.fetch("https://start.schulportal.hessen.de/startseite.php", {
+        var request = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/startseite.php?a=ajax&f=apps", { headers: Session.Headers });
+        var test = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/startseite.php", {
             "credentials": "include",
             "headers": {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
@@ -94,7 +94,7 @@ export default class Session {
 
     async fetchRemainingSessionTime() {
         try {
-            var request = await this.fetch("https://start.schulportal.hessen.de/ajax_login.php", {
+            var request = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax_login.php", {
                 "headers": Session.Headers,
                 "body": "name=" + this.sessionId,
                 "method": "POST",
@@ -104,7 +104,7 @@ export default class Session {
             if (isNaN(time))
                 return new ReturnObject(false, 4);
 
-            return new ReturnObject(true, 0, await request.text());
+            return new ReturnObject(true, 0, time);
         }
         catch (err) {
             return new ReturnObject(false, -1, err);
@@ -115,9 +115,10 @@ export default class Session {
         try {
             var data = await this.fetchRemainingSessionTime();
             if (!data.success || data.data === undefined || data.data === "" || data.data <= 0 || data.data === 300)
-                return new ReturnObject(false, 5);
+                return new ReturnObject(false, 5, data.data);
 
             this._keepAliveCallback = setTimeout(() => this.keepSessionAlive(), data * 1000);
+            return new ReturnObject(true, 0);
         }
         catch (err) {
             return new ReturnObject(false, -1, err);

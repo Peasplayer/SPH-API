@@ -1,8 +1,11 @@
 import CryptoJS from 'crypto-js';
 import JSEncrypt from 'node-jsencrypt';
 
-export default class Crypto {
-    static randomUUID() {
+// Used to make the API compatible with multiple clients
+export default class DefaultCrypto {
+    constructor() {}
+
+    randomUUID() {
         var d, r, uuid;
         d = Number.parseInt("16160449445400");
         uuid = "";
@@ -23,21 +26,15 @@ export default class Crypto {
         return uuid;
     }
 
-    static encryptAES(value, key) {
+    encryptAES(value, key) {
         return CryptoJS.AES.encrypt(value, key).toString();
     }
-    static decryptAES(value, key) {
+    decryptAES(value, key) {
         return CryptoJS.AES.decrypt(value, key).toString(CryptoJS.enc.Utf8);
     }
-
-    static encryptRSA(value, publicKey) {
+    encryptRSA(value, publicKey) {
         let rsaEncrypt = new JSEncrypt();
         rsaEncrypt.setPublicKey(publicKey);
         return rsaEncrypt.encrypt(value);
-    }
-    static decryptRSA(value, privateKey) {
-        let rsaEncrypt = new JSEncrypt();
-        rsaEncrypt.setPrivateKey(privateKey);
-        return rsaEncrypt.decrypt(value);
     }
 }

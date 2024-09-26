@@ -1,6 +1,6 @@
 {
   "name": "sph-api",
-  "version": "0.0.1-clean",
+  "version": "0.0.3",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -8,10 +8,6 @@
   "author": "Peasplayer",
   "license": "AGPL-3.0",
   "dependencies": {
-    "crypto-js": "^4.2.0",
-    "fetch-cookie": "^3.0.1",
-    "node-fetch-cookies": "^2.1.1",
-    "node-html-parser": "^6.1.13",
-    "node-jsencrypt": "^1.0.0"
+    "node-html-parser": "^6.1.13"
   }
 }

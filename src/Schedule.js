@@ -17,7 +17,7 @@ export default class Schedule {
             var parsed = HTMLParser.parse(file);//(await req.text());
             */
 
-            var req = await this.session.fetch("https://start.schulportal.hessen.de/stundenplan.php", { headers: Session.Headers });
+            var req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/stundenplan.php", { headers: Session.Headers });
             var parsed = HTMLParser.parse(await req.text());
             parsed.removeWhitespace();
             var plan = parsed.querySelector("#own")?.querySelector("tbody");
