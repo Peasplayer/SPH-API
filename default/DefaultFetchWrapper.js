@@ -17,6 +17,10 @@ export default class DefaultFetchWrapper {
         var cookies = await this._cookieJar.getCookies("https://" + domain);
         return cookies.find(cookie => cookie.key === name);
     }
+
+    async clearCookies() {
+        await this._cookieJar.removeAllCookies();
+    }
 }
 
 export class ResponseObject {

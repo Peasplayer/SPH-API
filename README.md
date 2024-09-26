@@ -30,7 +30,8 @@ Struktur des DefaultFetchWrapper:
 ````javascript
 var fetchWrapper = {
     fetch: async (url, options) => {}, // Gibt ResponseObject zurück (Siehe unten),
-    getCookie: async (domain, name) => {} // Gibt Cookie-Objekt zurück (Erforderliche Parameter: value)
+    getCookie: async (domain, name) => {}, // Gibt Cookie-Objekt zurück (Erforderliche Parameter: value)
+    clearCookies: async () => {} // Löscht alle vorhandenen Cookies
 }
 ````
 Struktur des ResponseObject:

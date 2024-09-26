@@ -27,6 +27,8 @@ export default class Session {
                 return new ReturnObject(false, 1);
             this.credentials = credentials;
 
+            this.fetchWrapper.clearCookies();
+
             var loginReq = await this.fetchWrapper.fetch("https://login.schulportal.hessen.de/?i=" + credentials.schoolId, {
                 "method": "POST",
                 "body": encodeURI(`url=&timezone=2&skin=sp&user2=${credentials.username}&user=${credentials.schoolId}.${credentials.username}&password=${credentials.password + ""}`),
@@ -117,7 +119,7 @@ export default class Session {
             if (!data.success || data.data === undefined || data.data === "" || data.data <= 0 || data.data === 300)
                 return new ReturnObject(false, 5, data.data);
 
-            this._keepAliveCallback = setTimeout(() => this.keepSessionAlive(), data * 1000);
+            this._keepAliveCallback = setTimeout(() => this.keepSessionAlive(), data.data * 1000);
             return new ReturnObject(true, 0);
         }
         catch (err) {
