@@ -27,7 +27,7 @@ export default class Session {
                 return new ReturnObject(false, 1);
             this.credentials = credentials;
 
-            this.fetchWrapper.clearCookies();
+            await this.fetchWrapper.clearCookies();
 
             var loginReq = await this.fetchWrapper.fetch("https://login.schulportal.hessen.de/?i=" + credentials.schoolId, {
                 "method": "POST",
