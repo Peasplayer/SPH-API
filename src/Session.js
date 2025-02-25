@@ -1,6 +1,7 @@
 import CacheEntry from "./lib/CacheEntry.js";
 import Schedule from "./Schedule.js";
 import ReturnObject from "./lib/ReturnObject.js";
+import SubstitutionPlan from "./SubstitutionPlan.js";
 
 export default class Session {
     crypto;
@@ -12,6 +13,7 @@ export default class Session {
     _keepAliveCallback;
 
     Schedule;
+    SubstitutionPlan;
 
     constructor(crypto, fetchWrapper) {
         this.crypto = crypto;
@@ -19,6 +21,7 @@ export default class Session {
         this.sessionKey = this.crypto.encryptAES(this.crypto.randomUUID(), this.crypto.randomUUID());
 
         this.Schedule = new Schedule(this);
+        this.SubstitutionPlan = new SubstitutionPlan(this);
     }
 
     async login(credentials) {
