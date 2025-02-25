@@ -2,7 +2,7 @@
 Inoffizielle API um die Daten des hessischen Schulportals abzurufen
 ## Features
 - [x] Stundenplan
-- [ ] Vertretungsplan
+- [x] Vertretungsplan
 - [ ] Mein Untericht
 - [ ] Nachrichten
 - [ ] Lerngruppen
