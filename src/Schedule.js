@@ -91,14 +91,9 @@ export default class Schedule {
         return rows.map(row => {
             var columns = row.childNodes;
             var hourColumn = columns.shift();
-            return {
-                hour: {
-                    calc: rows.indexOf(row) + 1,
-                    number: parseInt(hourColumn.querySelector(".hidden-print")?.text?.replace(".", "")),
-                    text: hourColumn.querySelector(".print-show b")?.text,
-                    duration: hourColumn.querySelector(".VonBis")?.text
-                },
-                subjects: columns.map(column => column.childNodes.filter(subject => subject.classNames.includes("stunde"))
+            var subjects = [[],[],[],[],[]];
+            columns.forEach(column => {
+                subjects[columns.indexOf(column)] = column.childNodes.filter(subject => subject.classNames.includes("stunde"))
                     .map(subject => {
                         var rawData = subject.attributes.title.trim();
                         var data = {};
@@ -107,7 +102,7 @@ export default class Schedule {
                         if (data.teacher === "")
                             data.teacher = undefined;
                         data.id = subject.attributes['data-mix'];
-                        data.span = column.attributes.rowspan;
+                        data.span = parseInt(column.attributes.rowspan);
                         data.rawTitle = subject.attributes.title;
 
                         var inRoom = rawData.includes("im Raum");
@@ -129,8 +124,17 @@ export default class Schedule {
                             rawData.match(/(?<=bei der Klasse\/Stufe\/Lerngruppe )(.*)(?= in .*-Wochen)/g)?.at(0);
                         data.week = rawData.match(/(?<=in )(.*)(?=-Wochen)/g)?.at(0);
                         return data;
-                    }))
-            };
+                    });
+            })
+            return {
+                hour: {
+                    calc: rows.indexOf(row) + 1,
+                    number: parseInt(hourColumn.querySelector(".hidden-print")?.text?.replace(".", "")),
+                    text: hourColumn.querySelector(".print-show b")?.text,
+                    duration: hourColumn.querySelector(".VonBis")?.text
+                },
+                subjects
+            }
         });
     }
 }
