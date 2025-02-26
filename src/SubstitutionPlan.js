@@ -21,6 +21,14 @@ export default class SubstitutionPlan {
                 var vplan = child.querySelector(".panel-body table");
                 var heading = child.querySelector(".panel-heading");
 
+                var updateTimeStampRaw = child.querySelector(".panel-body .pull-right i").textContent.trim()
+                    .replace("Letzte Aktualisierung: ", "").replace(" Uhr", "").split(" um ");
+                var updateTimeStamp = {
+                    ms: Date.parse(updateTimeStampRaw[0].split(".").reverse().join("-") + "T" + updateTimeStampRaw[1]),
+                    date: updateTimeStampRaw[0],
+                    time: updateTimeStampRaw[1],
+                }
+
                 var entries = [];
                 if (vplan.querySelector("tbody .alert-warning") === null)  {
                     entries = vplan.querySelector("tbody").querySelectorAll("tr").map(row => row.querySelectorAll("td").map(cell => {
@@ -45,6 +53,7 @@ export default class SubstitutionPlan {
                             ?.textContent?.trim(),
                         week: heading.childNodes.find(c => c.nodeType === 1 && c.classList.contains("woche"))
                             ?.textContent?.trim()?.replace("-Woche", ""),
+                        updateTimeStamp
                     }
                 };
             });
