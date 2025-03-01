@@ -26,7 +26,6 @@ export default class Messages {
             const data = await req.json();
 
             return new ReturnObject(true, 0, JSON.parse(this.session.crypto.decryptAES(data.rows, this.session.sessionKey)).map(row => {
-                console.log(row);
                 const sender = this.#parseReceiver(row.SenderName);
                 sender.id = row.Sender;
 
@@ -35,12 +34,13 @@ export default class Messages {
                     uuid: row.Uniquid,
                     sender,
                     subject: row.Betreff,
-                    deleted: row.Papierkorb,
+                    deleted: row.Papierkorb === "ja",
                     private: row.private,
                     receiver: row.empf === "" ? undefined : this.#parseAdditionalReceivers(row.empf.join()),
                     additionalReceiver: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
                     initials: row.kuerzel,
-                    date: row.DatumUnix * 1000
+                    date: row.DatumUnix * 1000,
+                    unread: row.unread
                 }
             }));
         }
