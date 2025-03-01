@@ -237,7 +237,6 @@ export default class Messages {
     }
 
     #parseMessage(msg) {
-        console.log(msg)
         return {
             id: msg.Id,
             uuid: msg.Uniquid,
