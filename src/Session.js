@@ -2,6 +2,7 @@ import CacheEntry from "./lib/CacheEntry.js";
 import Schedule from "./Schedule.js";
 import ReturnObject from "./lib/ReturnObject.js";
 import SubstitutionPlan from "./SubstitutionPlan.js";
+import Messages from "./Messages.js";
 
 export default class Session {
     crypto;
@@ -22,6 +23,7 @@ export default class Session {
 
         this.Schedule = new Schedule(this);
         this.SubstitutionPlan = new SubstitutionPlan(this);
+        this.Messages = new Messages(this);
     }
 
     async login(credentials) {

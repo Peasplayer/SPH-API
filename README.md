@@ -4,7 +4,7 @@ Inoffizielle API um die Daten des hessischen Schulportals abzurufen
 - [x] Stundenplan
 - [x] Vertretungsplan
 - [ ] Mein Untericht
-- [ ] Nachrichten
+- [x] Nachrichten
 - [ ] Lerngruppen
 - [ ] Dateispeicher
 - [ ] Dateiverteilung
