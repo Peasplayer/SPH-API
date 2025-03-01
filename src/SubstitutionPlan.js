@@ -1,6 +1,7 @@
 import Session from "./Session.js";
 import HTMLParser from "node-html-parser";
 import ReturnObject from "./lib/ReturnObject.js";
+import Utils from "./Utils.js";
 
 export default class SubstitutionPlan {
     session;
@@ -21,14 +22,6 @@ export default class SubstitutionPlan {
                 var vplan = child.querySelector(".panel-body table");
                 var heading = child.querySelector(".panel-heading");
 
-                var updateTimeStampRaw = child.querySelector(".panel-body .pull-right i").textContent.trim()
-                    .replace("Letzte Aktualisierung: ", "").replace(" Uhr", "").split(" um ");
-                var updateTimeStamp = {
-                    ms: Date.parse(updateTimeStampRaw[0].split(".").reverse().join("-") + "T" + updateTimeStampRaw[1]),
-                    date: updateTimeStampRaw[0],
-                    time: updateTimeStampRaw[1],
-                }
-
                 var entries = [];
                 if (vplan.querySelector("tbody .alert-warning") === null)  {
                     entries = vplan.querySelector("tbody").querySelectorAll("tr").map(row => row.querySelectorAll("td").map(cell => {
@@ -47,13 +40,14 @@ export default class SubstitutionPlan {
                         entries
                     },
                     details: {
-                        date: child.id.replace("tag", ""),
+                        date: child.id.replace("tag", "").replaceAll("_", "."),
                         dayName: heading.childNodes.find(c => c.nodeType === 3).textContent.trim(),
                         relativeDay: heading.childNodes.find(c => c.nodeType === 1 && c.rawAttrs === 'class="badge"')
                             ?.textContent?.trim(),
                         week: heading.childNodes.find(c => c.nodeType === 1 && c.classList.contains("woche"))
                             ?.textContent?.trim()?.replace("-Woche", ""),
-                        updateTimeStamp
+                        updateTimeStamp: Utils.parseStringDate(child.querySelector(".panel-body .pull-right i").textContent.trim()
+                            .replace("Letzte Aktualisierung: ", ""))
                     }
                 };
             });
