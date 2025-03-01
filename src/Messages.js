@@ -33,7 +33,7 @@ export default class Messages {
                     subject: row.Betreff,
                     deleted: row.Papierkorb,
                     private: row.private,
-                    receiver: row.empf,
+                    receiver: row.empf === "" ? undefined : this.#parseAdditionalReceivers(row.empf.join()),
                     additionalReceiver: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
                     initials: row.kuerzel,
                     date: row.DatumUnix * 1000
