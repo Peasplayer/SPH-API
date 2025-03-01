@@ -248,10 +248,11 @@ export default class Messages {
                 groupOnly: msg.message === "ja",
                 privateAnswerOnly: msg.privateAnswerOnly === "ja",
                 noAnswerAllowed: msg.noAnswerAllowed === "ja",
+                respondToDeleted: msg.AntwortAufAusgeblendeteNachricht,
             },
             subject: msg.Betreff,
             date: Utils.parseStringDate(msg.Datum),
-            content: decodeURIComponent(msg.Inhalt.replaceAll("<br />", "")),
+            content: Utils.unescapeHTML(msg.Inhalt.replaceAll("<br />", "")),
             receivers: msg.empf === "" ? undefined : this.#parseAdditionalReceivers(msg.empf.join()),
             additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger),
             users: {
@@ -260,7 +261,9 @@ export default class Messages {
                 parents: msg.statistik.eltern
             },
             ownMessage: msg.own,
-            markedAsDeleted: msg.Deleted,
+            markedAsDeleted: msg.Delete,
+            private: msg.private,
+            unread: msg.ungelesen,
             replies: msg.reply.map(reply => this.#parseMessage(reply)),
         }
     }

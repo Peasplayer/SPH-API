@@ -7,4 +7,18 @@ export default class Utils {
                 : dateParts[0]);
         return Date.parse(dateString.split(".").reverse().join("-") + "T" + dateParts[1]);
     }
+
+    static unescapeHTML(str) {
+        return str.replace(
+            /&amp;|&lt;|&gt;|&#39;|&quot;/g,
+            (tag) =>
+                ({
+                    '&amp;': '&',
+                    '&lt;': '<',
+                    '&gt;': '>',
+                    '&#39;': "'",
+                    '&quot;': '"'
+                }[tag] || tag)
+        );
+    }
 }
