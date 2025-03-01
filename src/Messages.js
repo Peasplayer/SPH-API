@@ -26,10 +26,14 @@ export default class Messages {
             const data = await req.json();
 
             return new ReturnObject(true, 0, JSON.parse(this.session.crypto.decryptAES(data.rows, this.session.sessionKey)).map(row => {
+                console.log(row);
+                const sender = this.#parseReceiver(row.SenderName);
+                sender.id = row.Sender;
+
                 return {
                     id: row.Id,
                     uuid: row.Uniquid,
-                    sender: row.Sender,
+                    sender,
                     subject: row.Betreff,
                     deleted: row.Papierkorb,
                     private: row.private,
@@ -214,15 +218,21 @@ export default class Messages {
             return undefined;
 
         return raw.split("</span>").map(r => {
-            if (r === "")
-                return undefined;
-
-            const roleRaw = r.split("class=\"fas fa-")[1].split("\"></i>")[0];
-            return {
-                name: r.split("</i> ")[1].trim(),
-                role: roleRaw === "users" || "child" ? "student" : (roleRaw === "user-circle" ? "parent" : (roleRaw === "user" ? "teacher" : undefined))
-            }
+            this.#parseReceiver(r)
         }).filter(r => r !== undefined);
+    }
+
+    #parseReceiver(r) {
+        if (r === undefined || r === null || r === "") {
+            return undefined;
+        }
+
+        r = r.replace("</span>", "");
+        const roleRaw = r.split("class=\"fas fa-")[1].split("\"></i>")[0];
+        return {
+            name: r.split("</i> ")[1].trim(),
+            role: (roleRaw === "users" || roleRaw === "child") ? "student" : (roleRaw === "user-circle" ? "parent" : (roleRaw === "user" ? "teacher" : undefined))
+        }
     }
 
     #parseMessage(msg) {
