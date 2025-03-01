@@ -67,9 +67,10 @@ export default class Messages {
             return new ReturnObject(true, 0, {
                 date: data.time * 1000,
                 options: {
-                    groupOnly: data.groupOnly === "ja",
-                    privateAnswerOnly: data.privateAnswerOnly === "ja",
-                    noAnswerAllowed: data.noAnswerAllowed === "ja",
+                    groupOnly: data.options.groupOnly === "ja",
+                    privateAnswerOnly: data.options.privateAnswerOnly === "ja",
+                    noAnswerAllowed: data.options.noAnswerAllowed === "ja",
+                    allowSuSToSuSMessages: data.ToolOptions.AllowSuSToSuSMessages === "on",
                 },
                 self: {
                     id: data.userId,
@@ -236,6 +237,7 @@ export default class Messages {
     }
 
     #parseMessage(msg) {
+        console.log(msg)
         return {
             id: msg.Id,
             uuid: msg.Uniquid,
@@ -248,7 +250,7 @@ export default class Messages {
                 groupOnly: msg.message === "ja",
                 privateAnswerOnly: msg.privateAnswerOnly === "ja",
                 noAnswerAllowed: msg.noAnswerAllowed === "ja",
-                respondToDeleted: msg.AntwortAufAusgeblendeteNachricht,
+                respondToDeleted: msg.AntwortAufAusgeblendeteNachricht === "on",
             },
             subject: msg.Betreff,
             date: Utils.parseStringDate(msg.Datum),
@@ -261,7 +263,8 @@ export default class Messages {
                 parents: msg.statistik.eltern
             },
             ownMessage: msg.own,
-            markedAsDeleted: msg.Delete,
+            deleteDate: msg.Delete === "" ? undefined : Utils.parseStringDate(msg.Delete),
+            markedAsDeleted: msg.Papierkorb === "ja",
             private: msg.private,
             unread: msg.ungelesen,
             replies: msg.reply.map(reply => this.#parseMessage(reply)),

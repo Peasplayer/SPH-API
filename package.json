@@ -1,6 +1,6 @@
 {
   "name": "sph-api",
-  "version": "0.0.7-fixed4",
+  "version": "0.0.7-fixed5",
   "description": "",
   "type": "module",
   "main": "index.js",
