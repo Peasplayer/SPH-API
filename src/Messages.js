@@ -218,9 +218,7 @@ export default class Messages {
         if (raw === null || raw === undefined)
             return undefined;
 
-        return raw.split("</span>").map(r => {
-            this.#parseReceiver(r)
-        }).filter(r => r !== undefined);
+        return raw.split("</span>").map(r => this.#parseReceiver(r)).filter(r => r !== undefined);
     }
 
     #parseReceiver(r) {
