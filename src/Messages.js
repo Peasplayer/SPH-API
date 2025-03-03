@@ -9,11 +9,16 @@ export default class Messages {
         this.session = session;
     }
 
-    async fetchChats(visibleOnly = true) {
+    async fetchChats(filter = "visible") {
         try {
             const formData = new FormData();
             formData.append("a", "headers");
-            formData.append("getType", visibleOnly ? "visibleOnly": "unvisibleOnly");
+            if (filter === "all")
+                formData.append("getType", "All");
+            else if (filter === "hidden")
+                formData.append("getType","unvisibleOnly");
+            else
+                formData.append("getType", "visibleOnly");
             formData.append("last", "0");
 
             const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php",
@@ -36,8 +41,8 @@ export default class Messages {
                     subject: row.Betreff,
                     deleted: row.Papierkorb === "ja",
                     private: row.private,
-                    receiver: row.empf === "" ? undefined : this.#parseAdditionalReceivers(row.empf.join()),
-                    additionalReceiver: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
+                    receivers: row.empf === "" ? [] : this.#parseAdditionalReceivers(row.empf.join()),
+                    additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
                     initials: row.kuerzel,
                     date: row.DatumUnix * 1000,
                     unread: row.unread
@@ -218,7 +223,7 @@ export default class Messages {
         if (raw === null || raw === undefined)
             return undefined;
 
-        return raw.split("</span>").map(r => this.#parseReceiver(r)).filter(r => r !== undefined);
+        return raw.split("</span>").map(r => this.#parseReceiver(r)).filter(r => r !== undefined && r.name !== "");
     }
 
     #parseReceiver(r) {
@@ -252,7 +257,7 @@ export default class Messages {
             subject: msg.Betreff,
             date: Utils.parseStringDate(msg.Datum),
             content: Utils.unescapeHTML(msg.Inhalt.replaceAll("<br />", "")),
-            receivers: msg.empf === "" ? undefined : this.#parseAdditionalReceivers(msg.empf.join()),
+            receivers: msg.empf === "" ? [] : this.#parseAdditionalReceivers(msg.empf.join()),
             additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger),
             users: {
                 students: msg.statistik.teilnehmer,
