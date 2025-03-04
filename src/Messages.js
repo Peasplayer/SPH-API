@@ -11,6 +11,15 @@ export default class Messages {
 
     async fetchChats(filter = "visible") {
         try {
+            return this._parseRawChats(this.session.crypto.decryptAES((await this._fetchChatsRaw(filter)).data, this.session.sessionKey));
+        }
+        catch (err) {
+            return new ReturnObject(false, -1, err);
+        }
+    }
+
+    async _fetchChatsRaw(filter = "visible") {
+        try {
             const formData = new FormData();
             formData.append("a", "headers");
             if (filter === "all")
@@ -30,28 +39,32 @@ export default class Messages {
 
             const data = await req.json();
 
-            return new ReturnObject(true, 0, JSON.parse(this.session.crypto.decryptAES(data.rows, this.session.sessionKey)).map(row => {
-                const sender = this.#parseReceiver(row.SenderName);
-                sender.id = row.Sender;
-
-                return {
-                    id: row.Id,
-                    uuid: row.Uniquid,
-                    sender,
-                    subject: row.Betreff,
-                    deleted: row.Papierkorb === "ja",
-                    private: row.private,
-                    receivers: row.empf === "" ? [] : this.#parseAdditionalReceivers(row.empf.join()),
-                    additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
-                    initials: row.kuerzel,
-                    date: row.DatumUnix * 1000,
-                    unread: row.unread
-                }
-            }));
+            return new ReturnObject(true, 0, data.rows);
         }
         catch (err) {
             return new ReturnObject(false, -1, err);
         }
+    }
+
+    _parseRawChats(rawChats) {
+        return new ReturnObject(true, 0, JSON.parse(rawChats).map(row => {
+            const sender = this.#parseReceiver(row.SenderName);
+            sender.id = row.Sender;
+
+            return {
+                id: row.Id,
+                uuid: row.Uniquid,
+                sender,
+                subject: row.Betreff,
+                deleted: row.Papierkorb === "ja",
+                private: row.private,
+                receivers: row.empf === "" ? [] : this.#parseAdditionalReceivers(row.empf.join()),
+                additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
+                initials: row.kuerzel,
+                date: row.DatumUnix * 1000,
+                unread: row.unread
+            }
+        }));
     }
 
     async fetchChatMessages(uuid) {
