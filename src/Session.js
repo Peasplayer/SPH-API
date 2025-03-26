@@ -3,6 +3,7 @@ import Schedule from "./Schedule.js";
 import ReturnObject from "./lib/ReturnObject.js";
 import SubstitutionPlan from "./SubstitutionPlan.js";
 import Messages from "./Messages.js";
+import MyLessons from "./MyLessons.js";
 
 export default class Session {
     crypto;
@@ -15,6 +16,8 @@ export default class Session {
 
     Schedule;
     SubstitutionPlan;
+    Messages;
+    MyLessons;
 
     constructor(crypto, fetchWrapper) {
         this.crypto = crypto;
@@ -24,6 +27,7 @@ export default class Session {
         this.Schedule = new Schedule(this);
         this.SubstitutionPlan = new SubstitutionPlan(this);
         this.Messages = new Messages(this);
+        this.MyLessons = new MyLessons(this);
     }
 
     async login(credentials) {
