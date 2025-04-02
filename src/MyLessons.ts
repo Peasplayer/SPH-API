@@ -1,11 +1,11 @@
 import Session from "./Session.js";
-import HTMLParser from "node-html-parser";
+import HTMLParser, {HTMLElement} from "node-html-parser";
 import ReturnObject from "./lib/ReturnObject.js";
 
 export default class MyLessons {
-    session;
+    session: Session;
 
-    constructor(session) {
+    constructor(session: Session) {
         this.session = session;
     }
 
@@ -15,13 +15,13 @@ export default class MyLessons {
             const parsed = HTMLParser.parse(await req.text());
             parsed.removeWhitespace();
 
-            const current = parsed.querySelector("#aktuellTable tbody").childNodes.filter(cn => cn.nodeType === 1).map(row => {
+            const current = parsed.querySelector("#aktuellTable tbody")?.childNodes.filter(cn => cn.nodeType === 1).map((row: HTMLElement) => {
                 const children = row.querySelectorAll("td");
 
                 return {
                     id: row.attributes["data-book"],
-                    title: children[0].querySelector("h3").textContent.trim(),
-                    teacher: children[0].querySelector(".teacher button").attributes["title"],
+                    title: children[0].querySelector("h3")?.textContent.trim(),
+                    teacher: children[0].querySelector(".teacher button")?.attributes["title"],
                     entry: row.attributes["data-entry"] !== undefined ? {
                         id: row.attributes["data-entry"],
                         title: children[1].querySelector(".thema")?.textContent.trim(),
@@ -41,10 +41,10 @@ export default class MyLessons {
                         }),
                         uploads: children[2].querySelectorAll("button .fa-upload").map(u => u.parentNode.parentNode).filter(u => u !== undefined).map(u => {
                             const listEntries = u.querySelectorAll("li");
-                            const divider = listEntries.indexOf(listEntries.find(e => e.classList.length !== 0));
+                            const divider = listEntries.findIndex(e => e.classList.length !== 0);
 
                             return {
-                                title: u.querySelector("button")?.childNodes.find(cn => cn.nodeType === 3 && cn.textContent.trim() !== "").textContent.trim(),
+                                title: u.querySelector("button")?.childNodes?.find(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")?.textContent.trim(),
                                 open: !u.querySelector("button")?.classNames.includes("btn-default"),
                                 stateText: listEntries.slice(0, divider).map(e => e.textContent.trim()), //To-Do: parse on or off
                                 uploadedFiles: listEntries.slice(divider + 1).map(file => file.textContent.trim()),
@@ -55,14 +55,14 @@ export default class MyLessons {
                 }
             });
 
-            return new ReturnObject(true, 0, current);
+            return new ReturnObject(current);
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
 
-    async fetchBookEntries(id) {
+    async fetchBookEntries(id: string) {
         try {
             const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
             const parsed = HTMLParser.parse(await req.text(), { parseNoneClosedTags: true });
@@ -72,11 +72,11 @@ export default class MyLessons {
                 if (t.attributes["data-entry"] === undefined)
                     return undefined;
 
-                const children = t.childNodes.filter(cn => cn.nodeType === 1);
+                const children = t.childNodes.filter(cn => cn.nodeType === 1) as HTMLElement[];
                 return {
                     id: t.attributes["data-entry"],
                     date: children[0].childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim(),
-                    hour: children[0].querySelector("small").textContent.trim(),
+                    hour: children[0].querySelector("small")?.textContent.trim(),
                     title: children[1].querySelector("big")?.textContent?.trim(),
                     content: children[1].querySelector('i[title="Ausführlicher Inhalt"]')?.parentNode?.textContent?.trim(),
                     homework: children[1].querySelector(".homework") !== null ? {
@@ -86,10 +86,10 @@ export default class MyLessons {
                     uploads: children[1].querySelectorAll(".btn-group").map(u => {
                         //console.log(u)
                         const listEntries = u.querySelectorAll("li");
-                        const divider = listEntries.indexOf(listEntries.find(e => e.classList.length !== 0));
+                        const divider = listEntries.findIndex(e => e.classList.length !== 0);
 
                         return {
-                            title: u.querySelector("button").childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim(),
+                            title: u.querySelector("button")?.childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim(),
                             open: !u.querySelector("button")?.classNames.includes("btn-default"),
                             stateText: listEntries.slice(0, divider).map(e => e.textContent.trim().replaceAll(/\s\s+/g, ' ')), //To-Do: parse on or off
                             uploadedFiles: listEntries.slice(divider + 1).map(file => file.textContent.trim()),
@@ -98,10 +98,10 @@ export default class MyLessons {
                     //attendance: this.session.crypto.decryptAES(children[2].textContent.trim(), this.session.sessionKey), return html
                 }
             }).filter(e => e !== undefined);
-            return new ReturnObject(true, 0, entries)
+            return new ReturnObject(entries)
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
 }

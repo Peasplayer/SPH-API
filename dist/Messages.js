@@ -1,26 +1,53 @@
 import Session from "./Session.js";
 import ReturnObject from "./lib/ReturnObject.js";
 import Utils from "./Utils.js";
-
 export default class Messages {
     session;
-
     constructor(session) {
         this.session = session;
     }
-
     async fetchChats(filter = "visible") {
         try {
-            return this._parseRawChats(this.session.crypto.decryptAES((await this._fetchChatsRaw(filter)).data, this.session.sessionKey));
+            const formData = new URLSearchParams();
+            formData.append("a", "headers");
+            if (filter === "all")
+                formData.append("getType", "All");
+            else if (filter === "hidden")
+                formData.append("getType", "unvisibleOnly");
+            else
+                formData.append("getType", "visibleOnly");
+            formData.append("last", "0");
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php", {
+                method: "POST",
+                headers: Session.Headers,
+                body: (formData).toString(),
+            });
+            const data = await req.json();
+            return new ReturnObject(JSON.parse(await this.session.crypto.decryptAES(data.rows, this.session.sessionKey)).map((row) => {
+                const sender = this.#parseReceiver(row.SenderName);
+                sender.id = row.Sender;
+                return {
+                    id: row.Id,
+                    uuid: row.Uniquid,
+                    sender,
+                    subject: Utils.unescapeHTML(row.Betreff),
+                    deleted: row.Papierkorb === "ja",
+                    private: row.private,
+                    receivers: row.empf === "" ? [] : this.#parseAdditionalReceivers(row.empf.join()),
+                    additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
+                    initials: row.kuerzel,
+                    date: row.DatumUnix * 1000,
+                    unread: row.unread !== undefined
+                };
+            }));
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
-
-    async _fetchChatsRaw(filter = "visible") {
+    /*async _fetchChatsRaw(filter = "visible") {
         try {
-            const formData = new FormData();
+            const formData = new URLSearchParams();
             formData.append("a", "headers");
             if (filter === "all")
                 formData.append("getType", "All");
@@ -34,20 +61,20 @@ export default class Messages {
                 {
                     method: "POST",
                     headers: Session.Headers,
-                    body: new URLSearchParams(formData).toString(),
+                    body: (formData).toString(),
                 });
 
             const data = await req.json();
 
-            return new ReturnObject(true, 0, data.rows);
+            return new ReturnObject(data.rows);
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
 
     _parseRawChats(rawChats) {
-        return new ReturnObject(true, 0, JSON.parse(rawChats).map(row => {
+        return new ReturnObject(JSON.parse(rawChats).map(row => {
             const sender = this.#parseReceiver(row.SenderName);
             sender.id = row.Sender;
 
@@ -65,24 +92,19 @@ export default class Messages {
                 unread: row.unread
             }
         }));
-    }
-
+    }*/
     async fetchChatMessages(uuid) {
         try {
-            const formData = new FormData();
+            const formData = new URLSearchParams();
             formData.append("a", "read");
-            formData.append("uniqid", this.session.crypto.encryptAES(uuid, this.session.sessionKey));
-
-            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php",
-                {
-                    method: "POST",
-                    headers: Session.Headers,
-                    body: new URLSearchParams(formData).toString(),
-                });
-
+            formData.append("uniqid", await this.session.crypto.encryptAES(uuid, this.session.sessionKey));
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php", {
+                method: "POST",
+                headers: Session.Headers,
+                body: formData.toString(),
+            });
             const data = await req.json();
-
-            return new ReturnObject(true, 0, {
+            return new ReturnObject({
                 date: data.time * 1000,
                 options: {
                     groupOnly: data.options.groupOnly === "ja",
@@ -94,88 +116,72 @@ export default class Messages {
                     id: data.userId,
                     role: data.UserTyp === "Teilnehmer" ? "student" : (data.UserTyp === "Betreuer" ? "teacher" : (data.UserTyp === "Eltern" ? "parent" : undefined))
                 },
-                initialMessage: this.#parseMessage(JSON.parse(this.session.crypto.decryptAES(data.message, this.session.sessionKey)))
+                initialMessage: this.#parseMessage(JSON.parse(await this.session.crypto.decryptAES(data.message, this.session.sessionKey)))
             });
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
-
     async hideMessage(uuid) {
         try {
-            const formData = new FormData();
+            const formData = new URLSearchParams();
             formData.append("a", "deleteAll");
             formData.append("uniqid", uuid);
-
-            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php",
-                {
-                    method: "POST",
-                    headers: Session.Headers,
-                    body: new URLSearchParams(formData).toString(),
-                });
-
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php", {
+                method: "POST",
+                headers: Session.Headers,
+                body: formData.toString(),
+            });
             const data = await req.text();
-
-            return new ReturnObject(data === "true", 0, undefined);
+            return new ReturnObject(data === "true");
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
-
     async showMessage(uuid) {
         try {
-            const formData = new FormData();
+            const formData = new URLSearchParams();
             formData.append("a", "recycleMsg");
             formData.append("uniqid", uuid);
-
-            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php",
-                {
-                    method: "POST",
-                    headers: Session.Headers,
-                    body: new URLSearchParams(formData).toString(),
-                });
-
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php", {
+                method: "POST",
+                headers: Session.Headers,
+                body: formData.toString(),
+            });
             const data = await req.text();
-
-            return new ReturnObject(data === "true", 0, undefined);
+            return new ReturnObject(data === "true");
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
-
     async searchReceiver(query) {
         if (query.length < 2)
-            return new ReturnObject(false, 7, undefined);
-
+            return new ReturnObject(undefined, 7);
         try {
-            const formData = new FormData();
+            const formData = new URLSearchParams();
             formData.append("q", query);
-            formData.append("page", 1);
+            formData.append("page", "1");
             formData.append("a", "searchRecipt");
-
             const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php?"
-                + new URLSearchParams(formData).toString());
-
+                + formData.toString());
             const data = await req.json();
-
-            return new ReturnObject(true, 0, data);
+            return new ReturnObject(data);
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
-
     async createNewChat(receivers, subject, content, type = undefined) {
         try {
             const messageData = [];
             receivers.forEach(receiver => {
-                messageData.push({name: "to[]", value: receiver});
-            })
-            messageData.push({name: "subject", value: subject});
-            messageData.push({name: "text", value: content});
+                messageData.push({ name: "to[]", value: receiver });
+            });
+            messageData.push({ name: "subject", value: subject });
+            messageData.push({ name: "text", value: content });
             if (type !== undefined) {
                 /*
                 * noAnswerAllowed: Keine Antworten möglich
@@ -183,75 +189,60 @@ export default class Messages {
                 * groupOnly: Antworten immer an alle
                 * openChat: "auch privates Kommunizieren unter Einzelnen möglich" (Keine Ahnung wie das funktioniert)
                 */
-                messageData.push({name: "Art", value: type});
+                messageData.push({ name: "Art", value: type });
             }
-
-            const formData = new FormData();
+            const formData = new URLSearchParams();
             formData.append("a", "newmessage");
-            formData.append("c", this.session.crypto.encryptAES(JSON.stringify(messageData), this.session.sessionKey));
-
-            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php",
-                {
-                    method: "POST",
-                    headers: Session.Headers,
-                    body: new URLSearchParams(formData).toString(),
-                });
-
+            formData.append("c", await this.session.crypto.encryptAES(JSON.stringify(messageData), this.session.sessionKey));
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php", {
+                method: "POST",
+                headers: Session.Headers,
+                body: formData.toString(),
+            });
             const data = await req.json();
-
-            return new ReturnObject(data.back, 0, data.id);
+            return new ReturnObject(data.id, data.back ? 0 : 1);
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
-
-    async replyToChat(uuid, content){
+    async replyToChat(uuid, content) {
         try {
-            const formData = new FormData();
+            const formData = new URLSearchParams();
             formData.append("a", "reply");
-            formData.append("c", this.session.crypto.encryptAES(JSON.stringify({
+            formData.append("c", await this.session.crypto.encryptAES(JSON.stringify({
                 to: "all",
                 message: content,
                 replyToMsg: uuid,
             }), this.session.sessionKey));
-
-            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php",
-                {
-                    method: "POST",
-                    headers: Session.Headers,
-                    body: new URLSearchParams(formData).toString(),
-                });
-
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php", {
+                method: "POST",
+                headers: Session.Headers,
+                body: formData.toString(),
+            });
             const data = await req.json();
-
-            return new ReturnObject(data.back, 0, data.id);
+            return new ReturnObject(data.id, data.back ? 0 : 1);
         }
         catch (err) {
-            return new ReturnObject(false, -1, err);
+            return ReturnObject.Error(err);
         }
     }
-
     #parseAdditionalReceivers(raw) {
         if (raw === null || raw === undefined)
             return undefined;
-
-        return raw.split("</span>").map(r => this.#parseReceiver(r)).filter(r => r !== undefined && r.name !== "");
+        return raw.split("</span>").map((r) => this.#parseReceiver(r)).filter((r) => r !== undefined && r.name !== "");
     }
-
     #parseReceiver(r) {
         if (r === undefined || r === null || r === "") {
             return undefined;
         }
-
         r = r.replace("</span>", "");
         const roleRaw = r.split("class=\"fas fa-")[1].split("\"></i>")[0];
         return {
             name: r.split("</i> ")[1].trim(),
             role: (roleRaw === "users" || roleRaw === "child") ? "student" : (roleRaw === "user-circle" ? "parent" : (roleRaw === "user" ? "teacher" : undefined))
-        }
+        };
     }
-
     #parseMessage(msg) {
         return {
             id: msg.Id,
@@ -282,7 +273,7 @@ export default class Messages {
             markedAsDeleted: msg.Papierkorb === "ja",
             private: msg.private,
             unread: msg.ungelesen,
-            replies: msg.reply.map(reply => this.#parseMessage(reply)),
-        }
+            replies: msg.reply.map((reply) => this.#parseMessage(reply)),
+        };
     }
 }

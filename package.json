@@ -1,13 +1,17 @@
 {
   "name": "sph-api",
-  "version": "0.0.7-fixed10",
+  "version": "0.0.7-ts1",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "keywords": [],
   "author": "Peasplayer",
   "license": "AGPL-3.0",
   "dependencies": {
-    "node-html-parser": "^6.1.13"
+    "node-html-parser": "^7.0.1"
   }
 }

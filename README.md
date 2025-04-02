@@ -20,9 +20,9 @@ Struktur:
 ````javascript
 var crypto = {
     randomUUID: () => {},
-    encryptAES: (value, key) => {}, // Gibt verschlüsselten string (utf-8) zurück
-    decryptAES: (value, key) => {}, // Gibt entschlüsselten string (utf-8) zurück
-    encryptRSA: (value, publicKey) => {} // Gibt verschlüsselten string (base64) zurück
+    encryptAES: async (value, key) => {}, // Gibt verschlüsselten string (utf-8) zurück
+    decryptAES: async (value, key) => {}, // Gibt entschlüsselten string (utf-8) zurück
+    encryptRSA: async (value, publicKey) => {} // Gibt verschlüsselten string (base64) zurück
 }
 ````
 #### Request-Modul

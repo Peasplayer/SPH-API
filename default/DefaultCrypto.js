@@ -26,13 +26,13 @@ export default class DefaultCrypto {
         return uuid;
     }
 
-    encryptAES(value, key) {
+    async encryptAES(value, key) {
         return CryptoJS.AES.encrypt(value, key).toString();
     }
-    decryptAES(value, key) {
+    async decryptAES(value, key) {
         return CryptoJS.AES.decrypt(value, key).toString(CryptoJS.enc.Utf8);
     }
-    encryptRSA(value, publicKey) {
+    async encryptRSA(value, publicKey) {
         let rsaEncrypt = new JSEncrypt();
         rsaEncrypt.setPublicKey(publicKey);
         return rsaEncrypt.encrypt(value);

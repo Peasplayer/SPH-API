@@ -1,5 +1,5 @@
 export default class Utils {
-    static parseStringDate(date) {
+    static parseStringDate(date: string) {
         date = date.replace("um ", "").replace(" Uhr", "");
         const dateParts = date.split(" ");
         const dateString = dateParts[0] === "heute" ? new Date(Date.now()).toLocaleDateString("de", {timeZone: "Europe/Berlin"})
@@ -8,7 +8,7 @@ export default class Utils {
         return Date.parse(dateString.split(".").map(i => i.padStart(2, "0")).reverse().join("-") + "T" + dateParts[1]);
     }
 
-    static unescapeHTML(str) {
+    static unescapeHTML(str: string) {
         return str.replace(
             /&amp;|&lt;|&gt;|&#39;|&quot;/g,
             (tag) =>
