@@ -14,7 +14,7 @@ export default class DefaultFetchWrapper {
     }
 
     async getCookie(domain, name) {
-        var cookies = await this._cookieJar.getCookies("https://" + domain);
+        const cookies = await this._cookieJar.getCookies("https://" + domain);
         return cookies.find(cookie => cookie.key === name);
     }
 

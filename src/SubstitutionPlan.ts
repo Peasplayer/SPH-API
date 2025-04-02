@@ -26,21 +26,20 @@ export default class SubstitutionPlan {
 
     async fetchSubstitutionPlan() {
         try {
-            var req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/vertretungsplan.php", { headers: Session.Headers });
-            var text = await req.text();
-            var parsed = HTMLParser.parse(text);
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/vertretungsplan.php", { headers: Session.Headers });
+            const parsed = HTMLParser.parse(await req.text());
             parsed.removeWhitespace();
 
-            var content = parsed.querySelector("#content .row div")
+            const content = parsed.querySelector("#content .row div")
             if (content == null)
                 return ReturnObject.NoData;
-            var subPlans: (SubstitutionPlanDay|undefined)[] = content.childNodes.filter((cn: Node) => cn.nodeType === 1)
+            const subPlans: (SubstitutionPlanDay|undefined)[] = content.childNodes.filter((cn: Node) => cn.nodeType === 1)
                 .filter((child: HTMLElement) => child.id.startsWith("tag")).map((child: HTMLElement): SubstitutionPlanDay|undefined => {
-                    var sPlan = child.querySelector(".panel-body table");
+                    const sPlan = child.querySelector(".panel-body table");
                     if (sPlan == null)
                         return undefined;
 
-                    var heading = child.querySelector(".panel-heading");
+                    const heading = child.querySelector(".panel-heading");
                     if (heading == null)
                         return undefined;
 

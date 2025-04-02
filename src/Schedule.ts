@@ -64,12 +64,12 @@ export default class Schedule {
                 unknown: undefined
             }
 
-            var req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/stundenplan.php" + (date !== undefined ? "?a=detail_klasse&e=1&date=" + date : ""), { headers: Session.Headers });
-            var parsed = HTMLParser.parse(await req.text());
+            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/stundenplan.php" + (date !== undefined ? "?a=detail_klasse&e=1&date=" + date : ""), { headers: Session.Headers });
+            const parsed = HTMLParser.parse(await req.text());
             parsed.removeWhitespace();
-            var plan = parsed.querySelector("#own")?.querySelector("tbody");
+            let plan = parsed.querySelector("#own")?.querySelector("tbody");
             if (plan !== undefined && plan !== null) {
-                var ownPlan = parsed.parentNode;
+                const ownPlan = parsed.parentNode;
                 plans.own = {
                     details: this.#parsePlanDetails(ownPlan),
                     rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
@@ -78,7 +78,7 @@ export default class Schedule {
 
             plan = parsed.querySelector("#all")?.querySelector("tbody");
             if (plan !== undefined && plan !== null) {
-                var allPlan = parsed.parentNode;
+                const allPlan = parsed.parentNode;
                 plans.all = {
                     details: this.#parsePlanDetails(allPlan),
                     rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
@@ -88,7 +88,7 @@ export default class Schedule {
             if (plans.own === undefined && plans.all === undefined) {
                 plan = parsed.querySelector(".plan")?.querySelector("tbody");
                 if (plan !== undefined && plan !== null) {
-                    var unknownPlan = parsed.parentNode.parentNode;
+                    const unknownPlan = parsed.parentNode.parentNode;
                     plans.unknown = {
                         details: this.#parsePlanDetails(unknownPlan),
                         rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
@@ -117,12 +117,12 @@ export default class Schedule {
     }
 
     #parsePlanDetails(planContainer: HTMLElement): PlanDetails {
-        var currentWeek = planContainer.querySelector("#aktuelleWoche");
-        var planSelector = planContainer?.querySelector("#dateSelect")
+        const currentWeek = planContainer.querySelector("#aktuelleWoche");
+        const planSelector = planContainer?.querySelector("#dateSelect")
             ?.querySelectorAll("option")?.map((option: HTMLElement) => {
                 return { text: option.text.trim(), value: option.attributes["value"], current: option.attributes["selected"] === "selected" };
             }) ?? undefined;
-        var validSince = planContainer.querySelector(".col-md-6");
+        const validSince = planContainer.querySelector(".col-md-6");
         return {
             title: planContainer.querySelector("h2")?.text,
             date: planContainer.querySelector(".plan")?.attributes["data-date"],
@@ -139,14 +139,14 @@ export default class Schedule {
     #parseScheduleRows(rows: HTMLElement[]): PlanRow[] {
         rows.shift();
         return rows.map((row: HTMLElement): PlanRow => {
-            var columns: HTMLElement[] = row.querySelectorAll("td");
-            var hourColumn = columns.shift();
-            var subjects: Subject[][] = [[],[],[],[],[]];
+            const columns: HTMLElement[] = row.querySelectorAll("td");
+            const hourColumn = columns.shift();
+            const subjects: Subject[][] = [[],[],[],[],[]];
             columns.forEach(column => {
                 subjects[columns.indexOf(column)] = column.querySelectorAll(".stunde")//childNodes.filter((subject: Node) => subject.classNames.includes("stunde"))
                     .map((subject: HTMLElement) => {
-                        var rawData = subject.attributes.title.trim();
-                        var data: Subject = {
+                        const rawData = subject.attributes.title.trim();
+                        const data: Subject = {
                             id: subject.attributes['data-mix'],
                             rawTitle: subject.attributes.title,
                             subject: ""
@@ -157,9 +157,9 @@ export default class Schedule {
                             data.teacher = undefined;
                         data.span = parseInt(column.attributes.rowspan);
 
-                        var inRoom = rawData.includes("im Raum");
-                        var withClass = rawData.includes("bei der Klasse/Stufe/Lerngruppe");
-                        var inWeeks = rawData.search(/in .*-Wochen/g) !== -1;
+                        const inRoom = rawData.includes("im Raum");
+                        const withClass = rawData.includes("bei der Klasse/Stufe/Lerngruppe");
+                        const inWeeks = rawData.search(/in .*-Wochen/g) !== -1;
 
                         if (!inRoom && !withClass && !inWeeks) {
                             data.subject = rawData;
