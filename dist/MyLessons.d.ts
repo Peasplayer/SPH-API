@@ -1,5 +1,4 @@
 import Session from "./Session.js";
-import ReturnObject from "./lib/ReturnObject.js";
 interface Homework {
     text: string;
     done: boolean;
@@ -43,7 +42,7 @@ interface DetailsBook extends Book {
 export default class MyLessons {
     session: Session;
     constructor(session: Session);
-    fetchCurrentEntries(): Promise<ReturnObject<Error> | ReturnObject<PreviewBook[]>>;
-    fetchBookEntries(id: string): Promise<ReturnObject<Error> | ReturnObject<DetailsBook>>;
+    fetchCurrentEntries(): Promise<PreviewBook[]>;
+    fetchBookEntries(id: string): Promise<DetailsBook>;
 }
 export {};

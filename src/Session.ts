@@ -1,9 +1,9 @@
 import CacheEntry from "./lib/CacheEntry.js";
 import Schedule from "./Schedule.js";
-import ReturnObject from "./lib/ReturnObject.js";
 import SubstitutionPlan from "./SubstitutionPlan.js";
 import Messages from "./Messages.js";
 import MyLessons from "./MyLessons.js";
+import SPHError, {ErrorCode} from "./lib/SPHError.js";
 
 interface CryptoModule {
     randomUUID(): string;
@@ -54,52 +54,44 @@ export default class Session {
     }
 
     async login(credentials: Credentials) {
-        try {
-            if (credentials === undefined || credentials.username === undefined || credentials.schoolId === undefined || credentials.password === undefined)
-                return new ReturnObject(undefined, 1);
-            this.credentials = credentials;
+        if (credentials === undefined || credentials.username === undefined || credentials.schoolId === undefined || credentials.password === undefined)
+            throw new SPHError(ErrorCode.CredentialsNotComplete)
+        this.credentials = credentials;
 
-            this.sessionKey = await this.crypto.encryptAES(this.crypto.randomUUID(), this.crypto.randomUUID());
+        this.sessionKey = await this.crypto.encryptAES(this.crypto.randomUUID(), this.crypto.randomUUID());
 
-            await this.fetchWrapper.clearCookies();
+        await this.fetchWrapper.clearCookies();
 
-            const loginReq = await this.fetchWrapper.fetch("https://login.schulportal.hessen.de/?i=" + credentials.schoolId, {
-                "method": "POST",
-                "body": encodeURI(`url=&timezone=2&skin=sp&user2=${credentials.username}&user=${credentials.schoolId}.${credentials.username}&password=${credentials.password + ""}`),
-                "headers": Session.Headers,
-                "redirect": "follow"
-            });
-            const login = await loginReq.json();
-            if (login.result !== 1)
-                return new ReturnObject((await this.fetchLanguage()).data["PE" + login.error], 2);
+        const loginReq = await this.fetchWrapper.fetch("https://login.schulportal.hessen.de/?i=" + credentials.schoolId, {
+            "method": "POST",
+            "body": encodeURI(`url=&timezone=2&skin=sp&user2=${credentials.username}&user=${credentials.schoolId}.${credentials.username}&password=${credentials.password + ""}`),
+            "headers": Session.Headers,
+            "redirect": "follow"
+        });
+        const login = await loginReq.json();
+        if (login.result !== 1)
+            throw new SPHError(ErrorCode.SPHRejected, (await this.fetchLanguage()).data["PE" + login.error]);
 
-            const connectReq = await this.fetchWrapper.fetch("https://connect.schulportal.hessen.de", { headers: Session.Headers });
-            const connectRes = await connectReq.text();
-            if (connectRes.startsWith("{")) {
-                const connectJson = JSON.parse(connectRes);
-                if (connectJson.result !== 1)
-                    return new ReturnObject((await this.fetchLanguage())
-                        .data["PE" + connectJson.error], 2);
-            }
-
-            this.sessionId = (await this.fetchWrapper.getCookie("schulportal.hessen.de", "sid")).value;
-            await this.keepSessionAlive();
-
-            const publicKey = (await (await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaPublicKey")).json()).publickey;
-            const handshakeReq = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaHandshake&s=" + Math.floor(Math.random() * 2000), {
-                "method": "POST",
-                "body": "key=" + encodeURIComponent(await this.crypto.encryptRSA(this.sessionKey, publicKey)),
-                "headers": Session.Headers
-            });
-            const decryptedChallenge = await this.crypto.decryptAES((await handshakeReq.json()).challenge, this.sessionKey);
-            if (decryptedChallenge !== this.sessionKey)
-                return new ReturnObject(undefined, 3);
-
-            return new ReturnObject();
+        const connectReq = await this.fetchWrapper.fetch("https://connect.schulportal.hessen.de", { headers: Session.Headers });
+        const connectRes = await connectReq.text();
+        if (connectRes.startsWith("{")) {
+            const connectJson = JSON.parse(connectRes);
+            if (connectJson.result !== 1)
+                throw new SPHError(ErrorCode.SPHRejected, (await this.fetchLanguage()).data["PE" + connectJson.error]);
         }
-        catch (err) {
-            return ReturnObject.Error(err);
-        }
+
+        this.sessionId = (await this.fetchWrapper.getCookie("schulportal.hessen.de", "sid")).value;
+        await this.keepSessionAlive();
+
+        const publicKey = (await (await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaPublicKey")).json()).publickey;
+        const handshakeReq = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax.php?f=rsaHandshake&s=" + Math.floor(Math.random() * 2000), {
+            "method": "POST",
+            "body": "key=" + encodeURIComponent(await this.crypto.encryptRSA(this.sessionKey, publicKey)),
+            "headers": Session.Headers
+        });
+        const decryptedChallenge = await this.crypto.decryptAES((await handshakeReq.json()).challenge, this.sessionKey);
+        if (decryptedChallenge !== this.sessionKey)
+            throw new SPHError(ErrorCode.FailedHandshake);
     }
 
     // NOT USE
@@ -129,36 +121,26 @@ export default class Session {
     }
 
     async fetchRemainingSessionTime() {
-        try {
-            const request = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax_login.php", {
-                "headers": Session.Headers,
-                "body": "name=" + this.sessionId,
-                "method": "POST",
-            });
+        const request = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/ajax_login.php", {
+            "headers": Session.Headers,
+            "body": "name=" + this.sessionId,
+            "method": "POST",
+        });
 
-            const time = parseInt(await request.text());
-            if (isNaN(time))
-                return new ReturnObject(undefined, 4);
+        const time = parseInt(await request.text());
+        if (isNaN(time))
+            throw new SPHError(ErrorCode.NotANumber);
 
-            return new ReturnObject(time);
-        }
-        catch (err) {
-            return ReturnObject.Error(err);
-        }
+        return time;
     }
 
     async keepSessionAlive() {
-        try {
-            const data = await this.fetchRemainingSessionTime();
-            if (!data.success || data.data === undefined || (data.data as number) <= 0 || data.data === 300)
-                return new ReturnObject(data.data, 5);
+        const data = await this.fetchRemainingSessionTime();
+        if (data <= 0 || data === 300)
+            throw new SPHError(ErrorCode.SessionHasEnded);
 
-            this.#keepAliveCallback = setTimeout(() => this.keepSessionAlive(), (data.data as number) * 1000);
-            return new ReturnObject(true, 0);
-        }
-        catch (err) {
-            return ReturnObject.Error(err);
-        }
+        this.#keepAliveCallback = setTimeout(() => this.keepSessionAlive(), data * 1000);
+        return true;
     }
 
     static Headers = {
@@ -170,44 +152,29 @@ export default class Session {
     #cache: {language?: CacheEntry, schoolList?: CacheEntry, schoolData: any} = { language: undefined, schoolList: undefined, schoolData: {} };
 
     async fetchLanguage() {
-        try {
-            if (this.#cache.language === undefined || !this.#cache.language.isValid()) {
-                const request = await this.fetchWrapper.fetch("https://login.schulportal.hessen.de/static/languages/de.json");
-                this.#cache.language = new CacheEntry(await request.json())
-            }
+        if (this.#cache.language === undefined || !this.#cache.language.isValid()) {
+            const request = await this.fetchWrapper.fetch("https://login.schulportal.hessen.de/static/languages/de.json");
+            this.#cache.language = new CacheEntry(await request.json())
+        }
 
-            return new ReturnObject(this.#cache.language.value);
-        }
-        catch (err) {
-            return ReturnObject.Error(err);
-        }
+        return this.#cache.language.value;
     }
 
     async fetchSchoolList() {
-        try {
-            if (this.#cache.schoolList === undefined || !this.#cache.schoolList.isValid()) {
-                const request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist");
-                this.#cache.schoolList = new CacheEntry(await request.json())
-            }
+        if (this.#cache.schoolList === undefined || !this.#cache.schoolList.isValid()) {
+            const request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist");
+            this.#cache.schoolList = new CacheEntry(await request.json())
+        }
 
-            return new ReturnObject(this.#cache.schoolList.value);
-        }
-        catch (err) {
-            return ReturnObject.Error(err);
-        }
+        return this.#cache.schoolList.value;
     }
 
     async fetchSchoolData(id: string) {
-        try {
-            if (this.#cache.schoolData[id] === undefined || !this.#cache.schoolData[id].isValid()) {
-                const request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist");
-                this.#cache.schoolData[id] = new CacheEntry(await request.json())
-            }
+        if (this.#cache.schoolData[id] === undefined || !this.#cache.schoolData[id].isValid()) {
+            const request = await fetch("https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist");
+            this.#cache.schoolData[id] = new CacheEntry(await request.json())
+        }
 
-            return new ReturnObject(this.#cache.schoolData[id].value);
-        }
-        catch (err) {
-            return ReturnObject.Error(err);
-        }
+        return this.#cache.schoolData[id].value;
     }
 }

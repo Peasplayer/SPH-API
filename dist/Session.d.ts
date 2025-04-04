@@ -1,5 +1,4 @@
 import Schedule from "./Schedule.js";
-import ReturnObject from "./lib/ReturnObject.js";
 import SubstitutionPlan from "./SubstitutionPlan.js";
 import Messages from "./Messages.js";
 import MyLessons from "./MyLessons.js";
@@ -38,17 +37,17 @@ export default class Session {
     Messages: Messages;
     MyLessons: MyLessons;
     constructor(crypto: CryptoModule, fetchWrapper: FetchWrapperModule);
-    login(credentials: Credentials): Promise<ReturnObject<any>>;
+    login(credentials: Credentials): Promise<void>;
     fetchApps(): Promise<any>;
-    fetchRemainingSessionTime(): Promise<ReturnObject<undefined> | ReturnObject<Error> | ReturnObject<number>>;
-    keepSessionAlive(): Promise<ReturnObject<number | Error> | ReturnObject<boolean>>;
+    fetchRemainingSessionTime(): Promise<number>;
+    keepSessionAlive(): Promise<boolean>;
     static Headers: {
         Accept: string;
         "Content-Type": string;
         "X-Requested-With": string;
     };
-    fetchLanguage(): Promise<ReturnObject<any>>;
-    fetchSchoolList(): Promise<ReturnObject<any>>;
-    fetchSchoolData(id: string): Promise<ReturnObject<any>>;
+    fetchLanguage(): Promise<any>;
+    fetchSchoolList(): Promise<any>;
+    fetchSchoolData(id: string): Promise<any>;
 }
 export {};

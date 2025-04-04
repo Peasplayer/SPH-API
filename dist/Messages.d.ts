@@ -1,5 +1,4 @@
 import Session from "./Session.js";
-import ReturnObject from "./lib/ReturnObject.js";
 interface Receiver {
     name: string;
     role: string | undefined;
@@ -8,8 +7,8 @@ export default class Messages {
     #private;
     session: Session;
     constructor(session: Session);
-    fetchChats(filter?: string): Promise<ReturnObject<any>>;
-    fetchChatMessages(uuid: string): Promise<ReturnObject<Error> | ReturnObject<{
+    fetchChats(filter?: string): Promise<any>;
+    fetchChatMessages(uuid: string): Promise<{
         date: number;
         options: {
             groupOnly: boolean;
@@ -52,11 +51,11 @@ export default class Messages {
             unread: any;
             replies: any;
         };
-    }>>;
-    hideMessage(uuid: string): Promise<ReturnObject<Error> | ReturnObject<boolean>>;
-    showMessage(uuid: string): Promise<ReturnObject<Error> | ReturnObject<boolean>>;
-    searchReceiver(query: string): Promise<ReturnObject<any>>;
-    createNewChat(receivers: string[], subject: string, content: string, type?: undefined): Promise<ReturnObject<any>>;
-    replyToChat(uuid: string, content: string, receiver?: string): Promise<ReturnObject<any>>;
+    }>;
+    hideMessage(uuid: string): Promise<boolean>;
+    showMessage(uuid: string): Promise<boolean>;
+    searchReceiver(query: string): Promise<any>;
+    createNewChat(receivers: string[], subject: string, content: string, type?: undefined): Promise<any>;
+    replyToChat(uuid: string, content: string, receiver?: string): Promise<any>;
 }
 export {};

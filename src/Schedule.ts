@@ -1,7 +1,6 @@
 //import fs from "node:fs";
 import HTMLParser, {HTMLElement} from "node-html-parser";
 import Session from "./Session.js";
-import ReturnObject from "./lib/ReturnObject.js";
 
 interface PlanDetails {
     title: string|undefined,
@@ -53,67 +52,57 @@ export default class Schedule {
     }
 
     async fetchStudentPlan(date?: string) {
-        try {
-            /*
-            var file = fs.readFileSync("./BECK.htm", {encoding: 'utf8'});
-            var parsed = HTMLParser.parse(file);//(await req.text());
-            */
-            const plans: {own?: Plan, all?: Plan, unknown?: Plan} = {
-                own: undefined,
-                all: undefined,
-                unknown: undefined
-            }
+        /*
+		var file = fs.readFileSync("./BECK.htm", {encoding: 'utf8'});
+		var parsed = HTMLParser.parse(file);//(await req.text());
+		*/
+        const plans: {own?: Plan, all?: Plan, unknown?: Plan} = {
+            own: undefined,
+            all: undefined,
+            unknown: undefined
+        }
 
-            const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/stundenplan.php" + (date !== undefined ? "?a=detail_klasse&e=1&date=" + date : ""), { headers: Session.Headers });
-            const parsed = HTMLParser.parse(await req.text());
-            parsed.removeWhitespace();
-            let plan = parsed.querySelector("#own")?.querySelector("tbody");
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/stundenplan.php" + (date !== undefined ? "?a=detail_klasse&e=1&date=" + date : ""), { headers: Session.Headers });
+        const parsed = HTMLParser.parse(await req.text());
+        parsed.removeWhitespace();
+        let plan = parsed.querySelector("#own")?.querySelector("tbody");
+        if (plan !== undefined && plan !== null) {
+            const ownPlan = parsed.querySelector("#own") as HTMLElement;
+            plans.own = {
+                details: this.#parsePlanDetails(ownPlan),
+                rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
+            }
+        }
+
+        plan = parsed.querySelector("#all")?.querySelector("tbody");
+        if (plan !== undefined && plan !== null) {
+            const allPlan = parsed.querySelector("#all") as HTMLElement;
+            plans.all = {
+                details: this.#parsePlanDetails(allPlan),
+                rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
+            }
+        }
+
+        if (plans.own === undefined && plans.all === undefined) {
+            plan = parsed.querySelector(".plan")?.querySelector("tbody");
             if (plan !== undefined && plan !== null) {
-                const ownPlan = parsed.querySelector("#own") as HTMLElement;
-                plans.own = {
-                    details: this.#parsePlanDetails(ownPlan),
+                const unknownPlan = parsed.querySelector(".plan")?.parentNode as HTMLElement;
+                plans.unknown = {
+                    details: this.#parsePlanDetails(unknownPlan),
                     rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
                 }
             }
-
-            plan = parsed.querySelector("#all")?.querySelector("tbody");
-            if (plan !== undefined && plan !== null) {
-                const allPlan = parsed.querySelector("#all") as HTMLElement;
-                plans.all = {
-                    details: this.#parsePlanDetails(allPlan),
-                    rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
-                }
-            }
-
-            if (plans.own === undefined && plans.all === undefined) {
-                plan = parsed.querySelector(".plan")?.querySelector("tbody");
-                if (plan !== undefined && plan !== null) {
-                    const unknownPlan = parsed.querySelector(".plan")?.parentNode as HTMLElement;
-                    plans.unknown = {
-                        details: this.#parsePlanDetails(unknownPlan),
-                        rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
-                    }
-                }
-            }
-
-            if (plans.own === undefined && plans.all === undefined && plans.unknown === undefined) {
-                return new ReturnObject(parsed, 6);
-            }
-
-            return new ReturnObject(plans);
         }
-        catch (err) {
-            return ReturnObject.Error(err);
+
+        if (plans.own === undefined && plans.all === undefined && plans.unknown === undefined) {
+            return undefined;
         }
+
+        return plans;
     }
 
     getEntireDay(plan: Plan, day: number) {
-        try {
-            return new ReturnObject(plan.rows.map(hour => { return { hour: hour.hour, subjects: hour.subjects[day] } }));
-        }
-        catch (err) {
-            return ReturnObject.Error(err);
-        }
+        return plan.rows.map(hour => { return { hour: hour.hour, subjects: hour.subjects[day] } });
     }
 
     #parsePlanDetails(planContainer: HTMLElement): PlanDetails {

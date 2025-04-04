@@ -1,5 +1,4 @@
 import Session from "./Session.js";
-import ReturnObject from "./lib/ReturnObject.js";
 interface SubstitutionPlanDay {
     content: {
         fields: {
@@ -19,6 +18,6 @@ interface SubstitutionPlanDay {
 export default class SubstitutionPlan {
     session: Session;
     constructor(session: Session);
-    fetchSubstitutionPlan(): Promise<ReturnObject<undefined> | ReturnObject<Error> | ReturnObject<(SubstitutionPlanDay | undefined)[]>>;
+    fetchSubstitutionPlan(): Promise<(SubstitutionPlanDay | undefined)[] | undefined>;
 }
 export {};
