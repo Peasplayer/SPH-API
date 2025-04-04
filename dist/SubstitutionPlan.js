@@ -52,7 +52,7 @@ export default class SubstitutionPlan {
                         .replace("Letzte Aktualisierung: ", ""))
                 }
             };
-        });
+        }).filter(s => s !== undefined);
         return subPlans;
     }
 }

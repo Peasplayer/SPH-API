@@ -2,7 +2,7 @@
 import HTMLParser, {HTMLElement} from "node-html-parser";
 import Session from "./Session.js";
 
-interface PlanDetails {
+export interface PlanDetails {
     title: string|undefined,
     date: string|undefined,
     currentWeek: {
@@ -18,7 +18,7 @@ interface PlanDetails {
     validSince?: string
 }
 
-interface Subject {
+export interface Subject {
     id: string,
     teacher?: string,
     subject: string,
@@ -29,7 +29,7 @@ interface Subject {
     rawTitle: string,
 }
 
-interface PlanRow {
+export interface PlanRow {
     hour: {
         calc: number,
         number: number,
@@ -39,7 +39,7 @@ interface PlanRow {
     subjects: Subject[][]
 }
 
-interface Plan {
+export interface Plan {
     details: PlanDetails;
     rows: PlanRow[];
 }

@@ -5,25 +5,25 @@ import Messages from "./Messages.js";
 import MyLessons from "./MyLessons.js";
 import SPHError, {ErrorCode} from "./lib/SPHError.js";
 
-interface CryptoModule {
+export interface CryptoModule {
     randomUUID(): string;
     encryptAES(value: string, key: string): Promise<string>;
     decryptAES(value: string, key: string): Promise<string>;
     encryptRSA(value: string, publicKey: string): Promise<string>;
 }
 
-interface ResponseObject {
+export interface ResponseObject {
     text(): Promise<string>;
     json(): Promise<any>;
 }
 
-interface FetchWrapperModule {
+export interface FetchWrapperModule {
     fetch(url: string, options?: any): Promise<ResponseObject>;
     getCookie(domain: string, name: string): Promise<{key: string, value: string}>;
     clearCookies(): Promise<void>;
 }
 
-interface Credentials {
+export interface Credentials {
     schoolId: string;
     username: string;
     password: string;

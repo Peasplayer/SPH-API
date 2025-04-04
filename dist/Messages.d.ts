@@ -1,7 +1,24 @@
 import Session from "./Session.js";
-interface Receiver {
+export interface Receiver {
     name: string;
     role: string | undefined;
+}
+export interface Message {
+    id: string;
+    uuid: string;
+    sender: {
+        id: string;
+        name: string;
+        role: string | undefined;
+    };
+    subject: string;
+    deleted: boolean;
+    private: string;
+    receivers: Receiver[];
+    additionalReceivers: Receiver[];
+    initials: string;
+    date: number;
+    unread: boolean;
 }
 export default class Messages {
     #private;
@@ -58,4 +75,3 @@ export default class Messages {
     createNewChat(receivers: string[], subject: string, content: string, type?: undefined): Promise<any>;
     replyToChat(uuid: string, content: string, receiver?: string): Promise<any>;
 }
-export {};

@@ -1,26 +1,26 @@
 import Session from "./Session.js";
 import HTMLParser, {HTMLElement} from "node-html-parser";
 
-interface Homework {
+export interface Homework {
     text: string;
     done: boolean;
 }
 
-interface File {
+export interface File {
     name: string;
     extension: string;
     size: string;
     link: string;
 }
 
-interface Upload {
+export interface Upload {
     title: string,
     open: boolean,
     stateText: string[],
     uploadedFiles: string[],
 }
 
-interface Entry {
+export interface Entry {
     id: string;
     title: string;
     date: string;
@@ -33,18 +33,18 @@ interface Entry {
     attendance?: string;
 }
 
-interface Book {
+export interface Book {
     id: string;
     title: string;
     teacher: string;
     futureEntries: number;
 }
 
-interface PreviewBook extends Book {
+export interface PreviewBook extends Book {
     entry: Entry|undefined;
 }
 
-interface DetailsBook extends Book {
+export interface DetailsBook extends Book {
     entries: Entry[];
 }
 

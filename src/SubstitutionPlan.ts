@@ -2,7 +2,7 @@ import Session from "./Session.js";
 import HTMLParser, {HTMLElement, Node} from "node-html-parser";
 import Utils from "./Utils.js";
 
-interface SubstitutionPlanDay {
+export interface SubstitutionPlanDay {
     content: {
         fields: {key: string, name: string}[];
         entries: (string|undefined)[][];
@@ -32,7 +32,7 @@ export default class SubstitutionPlan {
         if (content == null)
             return undefined;
 
-        const subPlans: (SubstitutionPlanDay|undefined)[] = content.childNodes.filter((cn: Node) => cn.nodeType === 1)
+        const subPlans: SubstitutionPlanDay[] = content.childNodes.filter((cn: Node) => cn.nodeType === 1)
             .filter((child: HTMLElement) => child.id.startsWith("tag")).map((child: HTMLElement): SubstitutionPlanDay|undefined => {
                 const sPlan = child.querySelector(".panel-body table");
                 if (sPlan == null)
@@ -74,7 +74,7 @@ export default class SubstitutionPlan {
                             .replace("Letzte Aktualisierung: ", "") as string))
                     }
                 };
-            });
+            }).filter(s => s !== undefined);
 
         return subPlans;
     }

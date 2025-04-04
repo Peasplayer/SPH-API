@@ -2,12 +2,12 @@ import Session from "./Session.js";
 import Utils from "./Utils.js";
 import SPHError, {ErrorCode} from "./lib/SPHError.js";
 
-interface Receiver {
+export interface Receiver {
     name: string;
     role: string|undefined;
 }
 
-interface Message {
+export interface Message {
     id: string;
     uuid: string;
     sender: {
