@@ -38,17 +38,17 @@ export default class Session {
     Messages: Messages;
     MyLessons: MyLessons;
     constructor(crypto: CryptoModule, fetchWrapper: FetchWrapperModule);
-    login(credentials: Credentials): Promise<ReturnObject>;
+    login(credentials: Credentials): Promise<ReturnObject<any>>;
     fetchApps(): Promise<any>;
-    fetchRemainingSessionTime(): Promise<ReturnObject>;
-    keepSessionAlive(): Promise<ReturnObject>;
+    fetchRemainingSessionTime(): Promise<ReturnObject<undefined> | ReturnObject<Error> | ReturnObject<number>>;
+    keepSessionAlive(): Promise<ReturnObject<number | Error> | ReturnObject<boolean>>;
     static Headers: {
         Accept: string;
         "Content-Type": string;
         "X-Requested-With": string;
     };
-    fetchLanguage(): Promise<ReturnObject>;
-    fetchSchoolList(): Promise<ReturnObject>;
-    fetchSchoolData(id: string): Promise<ReturnObject>;
+    fetchLanguage(): Promise<ReturnObject<any>>;
+    fetchSchoolList(): Promise<ReturnObject<any>>;
+    fetchSchoolData(id: string): Promise<ReturnObject<any>>;
 }
 export {};

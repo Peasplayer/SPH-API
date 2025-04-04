@@ -1,3 +1,4 @@
+import HTMLParser from "node-html-parser";
 import Session from "./Session.js";
 import ReturnObject from "./lib/ReturnObject.js";
 interface PlanDetails {
@@ -7,7 +8,7 @@ interface PlanDetails {
         date: string | undefined;
         week: string | undefined;
         fullText: string | undefined;
-    };
+    } | undefined;
     planSelector: {
         text: string;
         value: string;
@@ -42,7 +43,19 @@ export default class Schedule {
     #private;
     session: Session;
     constructor(session: Session);
-    fetchStudentPlan(date?: string): Promise<ReturnObject>;
-    getEntireDay(plan: Plan, day: number): ReturnObject;
+    fetchStudentPlan(date?: string): Promise<ReturnObject<Error> | ReturnObject<HTMLParser.HTMLElement> | ReturnObject<{
+        own?: Plan;
+        all?: Plan;
+        unknown?: Plan;
+    }>>;
+    getEntireDay(plan: Plan, day: number): ReturnObject<Error> | ReturnObject<{
+        hour: {
+            calc: number;
+            number: number;
+            text: string | undefined;
+            duration: string | undefined;
+        };
+        subjects: Subject[];
+    }[]>;
 }
 export {};

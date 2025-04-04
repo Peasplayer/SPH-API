@@ -10,7 +10,7 @@ interface PlanDetails {
         date: string|undefined,
         week: string|undefined,
         fullText: string|undefined
-    },
+    }|undefined,
     planSelector: {
         text: string,
         value: string,
@@ -69,7 +69,7 @@ export default class Schedule {
             parsed.removeWhitespace();
             let plan = parsed.querySelector("#own")?.querySelector("tbody");
             if (plan !== undefined && plan !== null) {
-                const ownPlan = parsed.parentNode;
+                const ownPlan = parsed.querySelector("#own") as HTMLElement;
                 plans.own = {
                     details: this.#parsePlanDetails(ownPlan),
                     rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
@@ -78,7 +78,7 @@ export default class Schedule {
 
             plan = parsed.querySelector("#all")?.querySelector("tbody");
             if (plan !== undefined && plan !== null) {
-                const allPlan = parsed.parentNode;
+                const allPlan = parsed.querySelector("#all") as HTMLElement;
                 plans.all = {
                     details: this.#parsePlanDetails(allPlan),
                     rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
@@ -88,7 +88,7 @@ export default class Schedule {
             if (plans.own === undefined && plans.all === undefined) {
                 plan = parsed.querySelector(".plan")?.querySelector("tbody");
                 if (plan !== undefined && plan !== null) {
-                    const unknownPlan = parsed.parentNode.parentNode;
+                    const unknownPlan = parsed.querySelector(".plan")?.parentNode as HTMLElement;
                     plans.unknown = {
                         details: this.#parsePlanDetails(unknownPlan),
                         rows: this.#parseScheduleRows(plan.querySelectorAll("tr"))
@@ -126,11 +126,11 @@ export default class Schedule {
         return {
             title: planContainer.querySelector("h2")?.text,
             date: planContainer.querySelector(".plan")?.attributes["data-date"],
-            currentWeek: {
+            currentWeek: currentWeek ? {
                 date: currentWeek?.parentNode.text.split(":")[0],
                 week: currentWeek?.text,
                 fullText: currentWeek?.parentNode.text
-            },
+            } : undefined,
             planSelector: planSelector,
             validSince: validSince?.textContent?.trim()?.startsWith("Stundenplan gültig") ? validSince.textContent.split("ab ")[1]?.trim() : undefined
         }

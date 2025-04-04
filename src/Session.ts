@@ -150,10 +150,10 @@ export default class Session {
     async keepSessionAlive() {
         try {
             const data = await this.fetchRemainingSessionTime();
-            if (!data.success || data.data === undefined || data.data === "" || data.data <= 0 || data.data === 300)
+            if (!data.success || data.data === undefined || (data.data as number) <= 0 || data.data === 300)
                 return new ReturnObject(data.data, 5);
 
-            this.#keepAliveCallback = setTimeout(() => this.keepSessionAlive(), data.data * 1000);
+            this.#keepAliveCallback = setTimeout(() => this.keepSessionAlive(), (data.data as number) * 1000);
             return new ReturnObject(true, 0);
         }
         catch (err) {

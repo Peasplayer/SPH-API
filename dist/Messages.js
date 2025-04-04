@@ -187,7 +187,7 @@ export default class Messages {
                 * noAnswerAllowed: Keine Antworten möglich
                 * privateAnswerOnly: Antworten nur an Absender möglich
                 * groupOnly: Antworten immer an alle
-                * openChat: "auch privates Kommunizieren unter Einzelnen möglich" (Keine Ahnung wie das funktioniert)
+                * openChat: Antworten an alle oder eine einzelne Person (auswählbar)
                 */
                 messageData.push({ name: "Art", value: type });
             }
@@ -206,12 +206,12 @@ export default class Messages {
             return ReturnObject.Error(err);
         }
     }
-    async replyToChat(uuid, content) {
+    async replyToChat(uuid, content, receiver = "all") {
         try {
             const formData = new URLSearchParams();
             formData.append("a", "reply");
             formData.append("c", await this.session.crypto.encryptAES(JSON.stringify({
-                to: "all",
+                to: receiver, // Muss genauer erproben wie sich das in der Nachricht wiederspiegelt
                 message: content,
                 replyToMsg: uuid,
             }), this.session.sessionKey));

@@ -1,7 +1,24 @@
 import Session from "./Session.js";
 import ReturnObject from "./lib/ReturnObject.js";
+interface SubstitutionPlanDay {
+    content: {
+        fields: {
+            key: string;
+            name: string;
+        }[];
+        entries: (string | undefined)[][];
+    };
+    details: {
+        date: string;
+        dayName: string;
+        relativeDay: string | undefined;
+        week: string | undefined;
+        updateTimeStamp: number;
+    };
+}
 export default class SubstitutionPlan {
     session: Session;
     constructor(session: Session);
-    fetchSubstitutionPlan(): Promise<ReturnObject>;
+    fetchSubstitutionPlan(): Promise<ReturnObject<undefined> | ReturnObject<Error> | ReturnObject<(SubstitutionPlanDay | undefined)[]>>;
 }
+export {};
