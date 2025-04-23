@@ -36,11 +36,19 @@ export default class MyLessons {
                     uploads: children[2].querySelectorAll("button .fa-upload").map(u => u.parentNode.parentNode).filter(u => u !== undefined).map(u => {
                         const listEntries = u.querySelectorAll("li");
                         const divider = listEntries.findIndex(e => e.classList.length !== 0);
+                        let deadline = undefined;
+                        const rawDeadline = u.querySelector("small");
+                        if (rawDeadline !== null) {
+                            const deadlineParts = rawDeadline.textContent.trim().split(",")[1].trim().replace("\n", "").replaceAll(/\s\s+/g, ' ').split("um").map(s => s.trim());
+                            const now = new Date(Date.now());
+                            deadline = Date.parse(`${now.getFullYear()}-${(parseInt(deadlineParts[0].split(".")[1]) - 1).toString().padStart(2, "0")}-${deadlineParts[0].split(".")[0]}T${deadlineParts[1] /*.replace(":", "-")*/.replace(" Uhr", "")}:00Z`);
+                        }
                         return {
                             title: u.querySelector("button")?.childNodes?.find(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")?.textContent.trim(),
                             open: !u.querySelector("button")?.classNames.includes("btn-default"),
-                            stateText: listEntries.slice(0, divider).map(e => e.textContent.trim()), //To-Do: parse on or off
-                            uploadedFiles: listEntries.slice(divider + 1).map(file => file.textContent.trim()),
+                            stateText: listEntries.slice(deadline === undefined ? 0 : 1, divider).map(e => e.textContent.trim()), //To-Do: parse on or off
+                            deadline,
+                            uploadedFiles: divider !== -1 ? listEntries.slice(divider + 1).map(file => file.textContent.trim()) : [],
                         };
                     }),
                 } : undefined,
@@ -88,14 +96,22 @@ export default class MyLessons {
                     //console.log(u)
                     const listEntries = u.querySelectorAll("li");
                     const divider = listEntries.findIndex(e => e.classList.length !== 0);
+                    let deadline = undefined;
+                    const rawDeadline = u.querySelector("button small");
+                    if (rawDeadline !== null) {
+                        const deadlineParts = rawDeadline.textContent.trim().split(",")[1].trim().replace("\n", "").replaceAll(/\s\s+/g, ' ').split("um").map(s => s.trim());
+                        const now = new Date(Date.now());
+                        deadline = Date.parse(`${now.getFullYear()}-${(parseInt(deadlineParts[0].split(".")[1]) - 1).toString().padStart(2, "0")}-${deadlineParts[0].split(".")[0]}T${deadlineParts[1] /*.replace(":", "-")*/.replace(" Uhr", "")}:00Z`);
+                    }
                     return {
                         title: u.querySelector("button")?.childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim(),
                         open: !u.querySelector("button")?.classNames.includes("btn-default"),
-                        stateText: listEntries.slice(0, divider).map(e => e.textContent.trim().replaceAll(/\s\s+/g, ' ')), //To-Do: parse on or off
-                        uploadedFiles: listEntries.slice(divider + 1).map(file => file.textContent.trim()),
+                        stateText: listEntries.slice(deadline === undefined ? 0 : 1, divider).map(e => e.textContent.trim().replaceAll(/\s\s+/g, ' ')), //To-Do: parse on or off
+                        deadline,
+                        uploadedFiles: divider !== -1 ? listEntries.slice(divider + 1).map(file => file.textContent.trim()) : [],
                     };
                 }),
-                attendance: HTMLParser.parse(await this.session.crypto.decryptAES(children[2].textContent.trim(), this.session.sessionKey)).querySelector("span")?.textContent.trim(),
+                attendance: HTMLParser.parse(await this.session.crypto.decryptAES(children[2].textContent.trim(), this.session.sessionKey)).children[1].textContent.trim(),
             };
         }))).filter(e => e !== undefined);
         return book;

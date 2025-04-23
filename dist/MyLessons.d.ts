@@ -13,6 +13,7 @@ export interface Upload {
     title: string;
     open: boolean;
     stateText: string[];
+    deadline: number | undefined;
     uploadedFiles: string[];
 }
 export interface Entry {

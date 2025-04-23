@@ -32,8 +32,8 @@ export default class Messages {
                 subject: Utils.unescapeHTML(row.Betreff),
                 deleted: row.Papierkorb === "ja",
                 private: row.private,
-                receivers: row.empf === "" ? [] : this.#parseAdditionalReceivers(row.empf.join()),
-                additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
+                receivers: this.#parseAdditionalReceivers(row.empf.join()) ?? [],
+                additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger) ?? [],
                 initials: row.kuerzel,
                 date: row.DatumUnix * 1000,
                 unread: row.unread !== undefined
@@ -181,8 +181,8 @@ export default class Messages {
             subject: Utils.unescapeHTML(msg.Betreff),
             date: Utils.parseStringDate(msg.Datum),
             content: Utils.unescapeHTML(msg.Inhalt.replaceAll("<br />", "")),
-            receivers: msg.empf === "" ? [] : this.#parseAdditionalReceivers(msg.empf.join()),
-            additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger),
+            receivers: this.#parseAdditionalReceivers(msg.empf.join()) ?? [],
+            additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger) ?? [],
             users: {
                 students: msg.statistik.teilnehmer,
                 teachers: msg.statistik.betreuer,

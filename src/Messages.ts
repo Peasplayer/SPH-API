@@ -15,14 +15,30 @@ export interface Message {
         name: string;
         role: string|undefined;
     };
+    options?: {
+        groupOnly: boolean;
+        privateAnswerOnly: boolean;
+        noAnswerAllowed: boolean;
+        respondToDeleted: boolean;
+    };
     subject: string;
-    deleted: boolean;
+    content?: string;
+    deleted?: boolean;
+    deleteDate?: number|undefined;
+    markedAsDeleted?: boolean;
     private: string;
     receivers: Receiver[];
     additionalReceivers: Receiver[];
-    initials: string;
+    users?: {
+        students: number;
+        teachers: number;
+        parents: number;
+    };
+    ownMessage?: boolean;
+    initials?: string;
     date: number;
     unread: boolean;
+    replies?: Message[];
 }
 
 export default class Messages {
@@ -32,7 +48,7 @@ export default class Messages {
         this.session = session;
     }
 
-    async fetchChats(filter = "visible") {
+    async fetchChats(filter = "visible"): Promise<Message[]> {
         const formData = new URLSearchParams();
         formData.append("a", "headers");
         if (filter === "all")
@@ -51,7 +67,7 @@ export default class Messages {
             });
 
         const data = await req.json();
-        return JSON.parse(await this.session.crypto.decryptAES(data.rows, this.session.sessionKey)).map((row: any) => {
+        return JSON.parse(await this.session.crypto.decryptAES(data.rows, this.session.sessionKey)).map((row: any): Message => {
             const sender: any = this.#parseReceiver(row.SenderName);
             sender.id = row.Sender;
 
@@ -62,8 +78,8 @@ export default class Messages {
                 subject: Utils.unescapeHTML(row.Betreff),
                 deleted: row.Papierkorb === "ja",
                 private: row.private,
-                receivers: row.empf === "" ? [] : this.#parseAdditionalReceivers(row.empf.join()),
-                additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger),
+                receivers: this.#parseAdditionalReceivers(row.empf.join()) ?? [],
+                additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger) ?? [],
                 initials: row.kuerzel,
                 date: row.DatumUnix * 1000,
                 unread: row.unread !== undefined
@@ -227,7 +243,7 @@ export default class Messages {
         }
     }
 
-    #parseMessage(msg: any) {
+    #parseMessage(msg: any) : Message {
         return {
             id: msg.Id,
             uuid: msg.Uniquid,
@@ -245,8 +261,8 @@ export default class Messages {
             subject: Utils.unescapeHTML(msg.Betreff),
             date: Utils.parseStringDate(msg.Datum),
             content: Utils.unescapeHTML(msg.Inhalt.replaceAll("<br />", "")),
-            receivers: msg.empf === "" ? [] : this.#parseAdditionalReceivers(msg.empf.join()),
-            additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger),
+            receivers: this.#parseAdditionalReceivers(msg.empf.join()) ?? [],
+            additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger) ?? [],
             users: {
                 students: msg.statistik.teilnehmer,
                 teachers: msg.statistik.betreuer,

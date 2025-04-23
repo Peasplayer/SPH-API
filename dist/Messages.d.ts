@@ -11,20 +11,36 @@ export interface Message {
         name: string;
         role: string | undefined;
     };
+    options?: {
+        groupOnly: boolean;
+        privateAnswerOnly: boolean;
+        noAnswerAllowed: boolean;
+        respondToDeleted: boolean;
+    };
     subject: string;
-    deleted: boolean;
+    content?: string;
+    deleted?: boolean;
+    deleteDate?: number | undefined;
+    markedAsDeleted?: boolean;
     private: string;
     receivers: Receiver[];
     additionalReceivers: Receiver[];
-    initials: string;
+    users?: {
+        students: number;
+        teachers: number;
+        parents: number;
+    };
+    ownMessage?: boolean;
+    initials?: string;
     date: number;
     unread: boolean;
+    replies?: Message[];
 }
 export default class Messages {
     #private;
     session: Session;
     constructor(session: Session);
-    fetchChats(filter?: string): Promise<any>;
+    fetchChats(filter?: string): Promise<Message[]>;
     fetchChatMessages(uuid: string): Promise<{
         date: number;
         options: {
@@ -37,37 +53,7 @@ export default class Messages {
             id: any;
             role: string | undefined;
         };
-        initialMessage: {
-            id: any;
-            uuid: any;
-            sender: {
-                id: any;
-                role: string | undefined;
-                name: any;
-            };
-            options: {
-                groupOnly: boolean;
-                privateAnswerOnly: boolean;
-                noAnswerAllowed: boolean;
-                respondToDeleted: boolean;
-            };
-            subject: string;
-            date: number;
-            content: string;
-            receivers: Receiver[] | undefined;
-            additionalReceivers: Receiver[] | undefined;
-            users: {
-                students: any;
-                teachers: any;
-                parents: any;
-            };
-            ownMessage: any;
-            deleteDate: number | undefined;
-            markedAsDeleted: boolean;
-            private: any;
-            unread: any;
-            replies: any;
-        };
+        initialMessage: Message;
     }>;
     hideMessage(uuid: string): Promise<boolean>;
     showMessage(uuid: string): Promise<boolean>;
