@@ -78,7 +78,7 @@ export default class MyLessons {
                 id: t.attributes["data-entry"],
                 date: children[0].childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim(),
                 hour: children[0].querySelector("small")?.textContent.trim(),
-                title: children[1].querySelector("big").textContent.trim(),
+                title: children[1].querySelector("b")?.textContent.trim(),
                 content: children[1].querySelector('i[title="Ausführlicher Inhalt"]')?.parentNode?.textContent?.trim(),
                 homework: children[1].querySelector(".homework") !== null ? {
                     text: children[1].querySelectorAll('span.markup').find(s => s.querySelector("i") === null)?.textContent?.trim(),
