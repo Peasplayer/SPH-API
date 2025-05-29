@@ -173,7 +173,8 @@ export default class MyLessons {
                         uploadedFiles: divider !== -1 ? listEntries.slice(divider + 1).map(file => file.textContent.trim()) : [],
                     }
                 }),
-                attendance: HTMLParser.parse(await this.session.crypto.decryptAES(children[2].textContent.trim(), this.session.sessionKey)).children[1].textContent.trim(),
+                attendance: HTMLParser.parse(await this.session.crypto.decryptAES(children[2].textContent.trim(), this.session.sessionKey))
+                    .childNodes.filter(cn => cn.rawTagName !== "div").map(cn => cn.textContent.trim()).join(""),
             }
         }))).filter(e => e !== undefined);
 
