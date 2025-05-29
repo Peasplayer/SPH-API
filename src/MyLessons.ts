@@ -202,6 +202,23 @@ export default class MyLessons {
         return book;
     }
 
+    async checkHomework(id: string, entry: string, done: boolean) {
+        const formData = new URLSearchParams();
+        formData.append("a", "sus_homeworkDone");
+        formData.append("b", done ? "done" : "undone");
+        formData.append("id", id);
+        formData.append("entry", entry);
+
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php",
+            {
+                method: "POST",
+                headers: Session.Headers,
+                body: formData.toString(),
+            });
+
+        return await req.text() === "1";
+    }
+
     async fetchGrades(id: string) : Promise<Grade[]> {
         const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text());

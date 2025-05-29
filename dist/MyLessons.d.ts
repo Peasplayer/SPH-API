@@ -63,6 +63,7 @@ export default class MyLessons {
     constructor(session: Session);
     fetchCurrentEntries(): Promise<PreviewBook[]>;
     fetchBookEntries(id: string): Promise<DetailsBook>;
+    checkHomework(id: string, entry: string, done: boolean): Promise<boolean>;
     fetchGrades(id: string): Promise<Grade[]>;
     fetchExams(id: string): Promise<{
         name: string;
