@@ -203,4 +203,20 @@ export default class MyLessons {
             };
         }) ?? [];
     }
+    async fetchAttendances(id) {
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
+        const parsed = HTMLParser.parse(await req.text());
+        parsed.removeWhitespace();
+        const attendanceTable = parsed.querySelector("#attendanceTable tbody");
+        if (attendanceTable === null)
+            return [];
+        return await Promise.all(attendanceTable.querySelectorAll("tr")?.map(async (e) => {
+            return {
+                name: HTMLParser.parse(await this.session.crypto.decryptAES(e.children[0].textContent.trim(), this.session.sessionKey))
+                    .childNodes?.reverse().find(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")?.textContent.trim(),
+                hours: HTMLParser.parse(await this.session.crypto.decryptAES(e.children[1].textContent.trim(), this.session.sessionKey))
+                    .childNodes?.reverse().find(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")?.textContent.trim()
+            };
+        })) ?? [];
+    }
 }

@@ -68,4 +68,8 @@ export default class MyLessons {
         name: string;
         date: number;
     }[]>;
+    fetchAttendances(id: string): Promise<{
+        name: string;
+        hours: string;
+    }[]>;
 }
