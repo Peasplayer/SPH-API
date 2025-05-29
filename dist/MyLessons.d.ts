@@ -19,7 +19,7 @@ export interface Upload {
 export interface Entry {
     id: string;
     title: string;
-    date: string;
+    date: number;
     relativeDate?: string | undefined;
     hour?: string | undefined;
     content: string | undefined;

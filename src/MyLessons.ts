@@ -24,7 +24,7 @@ export interface Upload {
 export interface Entry {
     id: string;
     title: string;
-    date: string;
+    date: number;
     relativeDate?: string|undefined;
     hour?: string|undefined;
     content: string|undefined;
@@ -92,7 +92,7 @@ export default class MyLessons {
                 entry: row.attributes["data-entry"] !== undefined ? {
                     id: row.attributes["data-entry"],
                     title: (children[1].querySelector(".thema")?.textContent.trim() as string),
-                    date: (children[1].querySelector(".datum")?.textContent.trim() as string),
+                    date: (new Date((children[1].querySelector(".datum")?.textContent.trim() as string).split(".").reverse().join("-"))).getTime(),
                     relativeDate: children[0].querySelector(".label-danger")?.textContent?.trim()?.replace("von ", ""),
                     homework: children[1].querySelector(".homework") !== null ?{
                         text: (children[1].querySelector(".homework .text")?.textContent?.trim()?.replaceAll(" \n", "\n") as string),
@@ -157,7 +157,7 @@ export default class MyLessons {
             const children = t.childNodes.filter(cn => cn.nodeType === 1) as HTMLElement[];
             return {
                 id: t.attributes["data-entry"],
-                date: children[0].childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim(),
+                date: (new Date(children[0].childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim().split(".").reverse().join("-"))).getTime(),
                 hour: children[0].querySelector("small")?.textContent.trim(),
                 title: (children[1].querySelector("b") as HTMLElement)?.textContent.trim(),
                 content: children[1].querySelector('i[title="Ausführlicher Inhalt"]')?.parentNode?.textContent?.trim(),

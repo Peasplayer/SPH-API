@@ -30,7 +30,7 @@ export default class MyLessons {
                 entry: row.attributes["data-entry"] !== undefined ? {
                     id: row.attributes["data-entry"],
                     title: children[1].querySelector(".thema")?.textContent.trim(),
-                    date: children[1].querySelector(".datum")?.textContent.trim(),
+                    date: (new Date((children[1].querySelector(".datum")?.textContent.trim()).split(".").reverse().join("-"))).getTime(),
                     relativeDate: children[0].querySelector(".label-danger")?.textContent?.trim()?.replace("von ", ""),
                     homework: children[1].querySelector(".homework") !== null ? {
                         text: children[1].querySelector(".homework .text")?.textContent?.trim()?.replaceAll(" \n", "\n"),
@@ -88,7 +88,7 @@ export default class MyLessons {
             const children = t.childNodes.filter(cn => cn.nodeType === 1);
             return {
                 id: t.attributes["data-entry"],
-                date: children[0].childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim(),
+                date: (new Date(children[0].childNodes.filter(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")[0].textContent.trim().split(".").reverse().join("-"))).getTime(),
                 hour: children[0].querySelector("small")?.textContent.trim(),
                 title: children[1].querySelector("b")?.textContent.trim(),
                 content: children[1].querySelector('i[title="Ausführlicher Inhalt"]')?.parentNode?.textContent?.trim(),
@@ -163,7 +163,7 @@ export default class MyLessons {
                     day = 6;
                     break;
                 case "So":
-                    day = 7;
+                    day = 0;
                     break;
             }
             const now = new Date(Date.now());
