@@ -258,7 +258,7 @@ export default class MyLessons {
 
             grades.push({
                 name: cells[0].textContent.trim(),
-                date: date.getMilliseconds(),
+                date: date.getTime(),
                 grade: cells[2].textContent.trim(),
                 value: cells[2].querySelector("span")?.classList.contains("badge-success") ? GradeValue.Good :
                     (cells[2].querySelector("span")?.classList.contains("badge-danger") ? GradeValue.Bad : GradeValue.Neutral),
@@ -268,5 +268,23 @@ export default class MyLessons {
         }
 
         return grades;
+    }
+
+    async fetchExams(id: string) : Promise<{name: string, date: number}[]> {
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
+        const parsed = HTMLParser.parse(await req.text());
+        parsed.removeWhitespace();
+
+        const examsList = parsed.querySelector("#klausuren ul");
+        if (examsList === null)
+            return [];
+
+        return examsList.querySelectorAll("li")?.map(e => {
+            const data = e.textContent.trim().replace(" ", "%%%SEPERATOR%%%").split("%%%SEPERATOR%%%");
+            return {
+                name: data[1],
+                date: (new Date(data[0].split(".").reverse().join("-"))).getTime()
+            }
+        }) ?? [];
     }
 }

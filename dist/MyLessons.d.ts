@@ -64,4 +64,8 @@ export default class MyLessons {
     fetchCurrentEntries(): Promise<PreviewBook[]>;
     fetchBookEntries(id: string): Promise<DetailsBook>;
     fetchGrades(id: string): Promise<Grade[]>;
+    fetchExams(id: string): Promise<{
+        name: string;
+        date: number;
+    }[]>;
 }
