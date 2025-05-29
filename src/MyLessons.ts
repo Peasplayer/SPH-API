@@ -240,7 +240,7 @@ export default class MyLessons {
                     day = 6;
                     break;
                 case "So":
-                    day = 7;
+                    day = 0;
                     break;
             }
 
