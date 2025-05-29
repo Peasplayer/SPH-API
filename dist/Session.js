@@ -4,6 +4,7 @@ import SubstitutionPlan from "./SubstitutionPlan.js";
 import Messages from "./Messages.js";
 import MyLessons from "./MyLessons.js";
 import SPHError, { ErrorCode } from "./lib/SPHError.js";
+import HTMLParser from "node-html-parser";
 export default class Session {
     crypto;
     fetchWrapper;
@@ -56,6 +57,26 @@ export default class Session {
         const decryptedChallenge = await this.crypto.decryptAES((await handshakeReq.json()).challenge, this.sessionKey);
         if (decryptedChallenge !== this.sessionKey)
             throw new SPHError(ErrorCode.FailedHandshake);
+    }
+    async fetchAlerts() {
+        const request = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/startseite.php", {
+            headers: Session.Headers,
+            method: "POST",
+            body: "a=ajax&f=previews",
+        });
+        const response = await request.json();
+        function getAlert(id) {
+            return response[id].show ? {
+                alerts: response[id].preview,
+                texts: response[id].preshow?.map((t) => HTMLParser.parse(t).textContent.trim()),
+            } : undefined;
+        }
+        return {
+            "myLessons": getAlert('t59-1'),
+            "schedule": getAlert('t61-1'),
+            "messages": getAlert('t54-1'),
+            "substitution": getAlert('t17-1'),
+        };
     }
     // NOT USE
     async fetchApps() {

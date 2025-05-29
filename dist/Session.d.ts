@@ -38,6 +38,24 @@ export default class Session {
     MyLessons: MyLessons;
     constructor(crypto: CryptoModule, fetchWrapper: FetchWrapperModule);
     login(credentials: Credentials): Promise<void>;
+    fetchAlerts(): Promise<{
+        myLessons: {
+            alerts: any;
+            texts: any;
+        } | undefined;
+        schedule: {
+            alerts: any;
+            texts: any;
+        } | undefined;
+        messages: {
+            alerts: any;
+            texts: any;
+        } | undefined;
+        substitution: {
+            alerts: any;
+            texts: any;
+        } | undefined;
+    }>;
     fetchApps(): Promise<any>;
     fetchRemainingSessionTime(): Promise<number>;
     keepSessionAlive(): Promise<boolean>;
