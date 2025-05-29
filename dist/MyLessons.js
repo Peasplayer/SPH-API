@@ -1,5 +1,17 @@
 import Session from "./Session.js";
 import HTMLParser from "node-html-parser";
+export var GradeValue;
+(function (GradeValue) {
+    GradeValue[GradeValue["Good"] = 0] = "Good";
+    GradeValue[GradeValue["Neutral"] = 1] = "Neutral";
+    GradeValue[GradeValue["Bad"] = 2] = "Bad";
+})(GradeValue || (GradeValue = {}));
+export var GradeType;
+(function (GradeType) {
+    GradeType[GradeType["Normal"] = 0] = "Normal";
+    GradeType[GradeType["Interim"] = 1] = "Interim";
+    GradeType[GradeType["Final"] = 2] = "Final";
+})(GradeType || (GradeType = {}));
 export default class MyLessons {
     session;
     constructor(session) {
@@ -116,5 +128,64 @@ export default class MyLessons {
             };
         }))).filter(e => e !== undefined);
         return book;
+    }
+    async fetchGrades(id) {
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
+        const parsed = HTMLParser.parse(await req.text());
+        parsed.removeWhitespace();
+        const gradeTable = parsed.querySelector("#marks tbody");
+        if (gradeTable == null)
+            return [];
+        const gradeTableRows = gradeTable.querySelectorAll("tr");
+        const grades = [];
+        for (let i = 0; i < gradeTableRows.length; i++) {
+            const row = gradeTableRows[i];
+            const cells = row.querySelectorAll("td");
+            const rawDate = cells[1].textContent.trim().split(", ")[1].split(".");
+            let day = 0;
+            switch (cells[1].textContent.trim().split(", ")[0]) {
+                case "Mo":
+                    day = 1;
+                    break;
+                case "Di":
+                    day = 2;
+                    break;
+                case "Mi":
+                    day = 3;
+                    break;
+                case "Do":
+                    day = 4;
+                    break;
+                case "Fr":
+                    day = 5;
+                    break;
+                case "Sa":
+                    day = 6;
+                    break;
+                case "So":
+                    day = 7;
+                    break;
+            }
+            const now = new Date(Date.now());
+            let date = new Date(now.getFullYear() + "-" + rawDate[1] + "-" + rawDate[0]);
+            if (date.getDay() !== day) {
+                date = new Date((now.getFullYear() - 1) + "-" + rawDate[1] + "-" + rawDate[0]);
+            }
+            let note = undefined;
+            if (i < gradeTableRows.length - 1 && gradeTableRows[i + 1].querySelectorAll("td").length < 3) {
+                note = gradeTableRows[i + 1].querySelectorAll("td")[1].childNodes?.reverse().find(cn => cn.nodeType === 3 && cn.textContent.trim() !== "")?.textContent.trim();
+                i++;
+            }
+            grades.push({
+                name: cells[0].textContent.trim(),
+                date: date.getMilliseconds(),
+                grade: cells[2].textContent.trim(),
+                value: cells[2].querySelector("span")?.classList.contains("badge-success") ? GradeValue.Good :
+                    (cells[2].querySelector("span")?.classList.contains("badge-danger") ? GradeValue.Bad : GradeValue.Neutral),
+                type: row.classList.contains("warning") ? GradeType.Interim : (row.classList.contains("success") ? GradeType.Final : GradeType.Normal),
+                note
+            });
+        }
+        return grades;
     }
 }

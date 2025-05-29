@@ -40,9 +40,28 @@ export interface PreviewBook extends Book {
 export interface DetailsBook extends Book {
     entries: Entry[];
 }
+export declare enum GradeValue {
+    Good = 0,
+    Neutral = 1,
+    Bad = 2
+}
+export declare enum GradeType {
+    Normal = 0,
+    Interim = 1,
+    Final = 2
+}
+export interface Grade {
+    name: string;
+    date: number;
+    grade: string;
+    value: GradeValue;
+    type: GradeType;
+    note?: string;
+}
 export default class MyLessons {
     session: Session;
     constructor(session: Session);
     fetchCurrentEntries(): Promise<PreviewBook[]>;
     fetchBookEntries(id: string): Promise<DetailsBook>;
+    fetchGrades(id: string): Promise<Grade[]>;
 }
