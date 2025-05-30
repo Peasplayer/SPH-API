@@ -62,14 +62,15 @@ export default class MyLessons {
     session: Session;
     constructor(session: Session);
     fetchCurrentEntries(): Promise<PreviewBook[]>;
-    fetchBookEntries(id: string): Promise<DetailsBook>;
-    checkHomework(id: string, entry: string, done: boolean): Promise<boolean>;
-    fetchGrades(id: string): Promise<Grade[]>;
-    fetchExams(id: string): Promise<{
+    fetchBookEntries(bookId: string): Promise<DetailsBook>;
+    fetchFileBlob(bookId: string, entryId: string, fileName: string): Promise<Blob>;
+    checkHomework(bookId: string, entryId: string, done: boolean): Promise<boolean>;
+    fetchGrades(bookId: string): Promise<Grade[]>;
+    fetchExams(bookId: string): Promise<{
         name: string;
         date: number;
     }[]>;
-    fetchAttendances(id: string): Promise<{
+    fetchAttendances(bookId: string): Promise<{
         name: string;
         hours: string;
     }[]>;

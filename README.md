@@ -3,7 +3,7 @@ Inoffizielle API um die Daten des hessischen Schulportals abzurufen
 ## Features
 - [x] Stundenplan
 - [x] Vertretungsplan
-- [ ] Mein Untericht
+- [x] Mein Untericht
 - [x] Nachrichten
 - [ ] Lerngruppen
 - [ ] Dateispeicher
@@ -39,6 +39,7 @@ Struktur des ResponseObject:
 var responseObject = {
     defaultObject: response, // Das Objekt, dass normalerweise von der request-/fetch-Methode zurückgegeben wird
     text: async () => {}, // Gibt Antwort als string zurück
-    json: async () => {} // Gibt Antwort als JSON-Objekt zurück
+    json: async () => {}, // Gibt Antwort als JSON-Objekt zurück
+    blob: async () => {} // Gibt Antwort als Blob zurück
 }
 ````

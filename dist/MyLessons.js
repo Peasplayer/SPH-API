@@ -70,8 +70,8 @@ export default class MyLessons {
         }) ?? [];
         return current;
     }
-    async fetchBookEntries(id) {
-        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
+    async fetchBookEntries(bookId) {
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + bookId, { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text(), { parseNoneClosedTags: true });
         parsed.removeWhitespace();
         const title = parsed.querySelector("#content h1");
@@ -129,12 +129,16 @@ export default class MyLessons {
         }))).filter(e => e !== undefined);
         return book;
     }
-    async checkHomework(id, entry, done) {
+    async fetchFileBlob(bookId, entryId, fileName) {
+        const request = await this.session.fetchWrapper.fetch(`https://start.schulportal.hessen.de/meinunterricht.php?a=downloadFile&id=${bookId}&e=${entryId}&f=${fileName}`, { Headers: Session.Headers });
+        return await request.blob();
+    }
+    async checkHomework(bookId, entryId, done) {
         const formData = new URLSearchParams();
         formData.append("a", "sus_homeworkDone");
         formData.append("b", done ? "done" : "undone");
-        formData.append("id", id);
-        formData.append("entry", entry);
+        formData.append("id", bookId);
+        formData.append("entry", entryId);
         const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php", {
             method: "POST",
             headers: Session.Headers,
@@ -142,8 +146,8 @@ export default class MyLessons {
         });
         return await req.text() === "1";
     }
-    async fetchGrades(id) {
-        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
+    async fetchGrades(bookId) {
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + bookId, { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text());
         parsed.removeWhitespace();
         const gradeTable = parsed.querySelector("#marks tbody");
@@ -201,8 +205,8 @@ export default class MyLessons {
         }
         return grades;
     }
-    async fetchExams(id) {
-        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
+    async fetchExams(bookId) {
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + bookId, { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text());
         parsed.removeWhitespace();
         const examsList = parsed.querySelector("#klausuren ul");
@@ -216,8 +220,8 @@ export default class MyLessons {
             };
         }) ?? [];
     }
-    async fetchAttendances(id) {
-        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + id, { headers: Session.Headers });
+    async fetchAttendances(bookId) {
+        const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + bookId, { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text());
         parsed.removeWhitespace();
         const attendanceTable = parsed.querySelector("#attendanceTable tbody");

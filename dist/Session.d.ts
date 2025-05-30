@@ -11,6 +11,7 @@ export interface CryptoModule {
 export interface ResponseObject {
     text(): Promise<string>;
     json(): Promise<any>;
+    blob(): Promise<Blob>;
 }
 export interface FetchWrapperModule {
     fetch(url: string, options?: any): Promise<ResponseObject>;
