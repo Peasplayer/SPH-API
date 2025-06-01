@@ -165,7 +165,7 @@ export default class MyLessons {
                     text: (children[1].querySelectorAll('span.markup').find(s => s.querySelector("i") === null)?.textContent?.trim() as string),
                     done: children[1].querySelector(".homework .undone.hidden") !== null
                 } : undefined,
-                files: children[2].querySelector(".files")?.querySelectorAll(".file")?.map(file => {
+                files: children[1].querySelector(".files")?.querySelectorAll(".file")?.map(file => {
                     return {
                         name: file.attributes["data-file"],
                         extension: file.attributes["data-extension"],
