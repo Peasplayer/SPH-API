@@ -33,6 +33,15 @@ export interface PlanRow {
     };
     subjects: Subject[][];
 }
+export interface PlanDay {
+    hour: {
+        calc: number;
+        number: number;
+        text: string | undefined;
+        duration: string | undefined;
+    };
+    subjects: Subject[];
+}
 export interface Plan {
     details: PlanDetails;
     rows: PlanRow[];
@@ -46,13 +55,5 @@ export default class Schedule {
         all?: Plan;
         unknown?: Plan;
     } | undefined>;
-    getEntireDay(plan: Plan, day: number): {
-        hour: {
-            calc: number;
-            number: number;
-            text: string | undefined;
-            duration: string | undefined;
-        };
-        subjects: Subject[];
-    }[];
+    getEntireDay(plan: Plan, day: number): PlanDay[];
 }

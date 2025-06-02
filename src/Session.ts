@@ -96,7 +96,12 @@ export default class Session {
             throw new SPHError(ErrorCode.FailedHandshake);
     }
 
-    async fetchAlerts() {
+    async fetchAlerts(): Promise<{
+        "myLessons": { alerts: string; texts: string[] }|undefined;
+        "schedule": { alerts: string; texts: string[] }|undefined;
+        "messages": { alerts: string; texts: string[] }|undefined;
+        "substitution": { alerts: string; texts: string[] }|undefined;
+    }> {
         const request = await this.fetchWrapper.fetch("https://start.schulportal.hessen.de/startseite.php", {
             headers: Session.Headers,
             method: "POST",
@@ -107,7 +112,7 @@ export default class Session {
 
         function getAlert(id: string) {
             return response[id].show ? {
-                alerts: response[id].preview,
+                alerts: response[id].preview.toString(),
                 texts: response[id].preshow?.map((t: string) => HTMLParser.parse(t).textContent.trim()),
             } : undefined
         }

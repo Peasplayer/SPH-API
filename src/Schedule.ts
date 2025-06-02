@@ -39,6 +39,16 @@ export interface PlanRow {
     subjects: Subject[][]
 }
 
+export interface PlanDay {
+    hour: {
+        calc: number,
+        number: number,
+        text: string|undefined,
+        duration: string|undefined
+    },
+    subjects: Subject[]
+}
+
 export interface Plan {
     details: PlanDetails;
     rows: PlanRow[];
@@ -51,7 +61,7 @@ export default class Schedule {
         this.session = session;
     }
 
-    async fetchStudentPlan(date?: string) {
+    async fetchStudentPlan(date?: string): Promise<{own?: Plan, all?: Plan, unknown?: Plan}|undefined> {
         /*
 		var file = fs.readFileSync("./BECK.htm", {encoding: 'utf8'});
 		var parsed = HTMLParser.parse(file);//(await req.text());
@@ -101,7 +111,7 @@ export default class Schedule {
         return plans;
     }
 
-    getEntireDay(plan: Plan, day: number) {
+    getEntireDay(plan: Plan, day: number): PlanDay[] {
         return plan.rows.map(hour => { return { hour: hour.hour, subjects: hour.subjects[day] } });
     }
 

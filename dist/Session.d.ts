@@ -40,21 +40,21 @@ export default class Session {
     constructor(crypto: CryptoModule, fetchWrapper: FetchWrapperModule);
     login(credentials: Credentials): Promise<void>;
     fetchAlerts(): Promise<{
-        myLessons: {
-            alerts: any;
-            texts: any;
+        "myLessons": {
+            alerts: string;
+            texts: string[];
         } | undefined;
-        schedule: {
-            alerts: any;
-            texts: any;
+        "schedule": {
+            alerts: string;
+            texts: string[];
         } | undefined;
-        messages: {
-            alerts: any;
-            texts: any;
+        "messages": {
+            alerts: string;
+            texts: string[];
         } | undefined;
-        substitution: {
-            alerts: any;
-            texts: any;
+        "substitution": {
+            alerts: string;
+            texts: string[];
         } | undefined;
     }>;
     fetchApps(): Promise<any>;

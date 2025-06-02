@@ -4,6 +4,7 @@ import SPHError, {ErrorCode} from "./lib/SPHError.js";
 
 export interface Receiver {
     name: string;
+    id?: string;
     role: string|undefined;
 }
 
@@ -38,7 +39,22 @@ export interface Message {
     initials?: string;
     date: number;
     unread: boolean;
-    replies?: Message[];
+    replies: Message[];
+}
+
+export interface ChatDetails {
+    date: number;
+    options: {
+        groupOnly: boolean;
+        privateAnswerOnly: boolean;
+        noAnswerAllowed: boolean;
+        allowSuSToSuSMessages: boolean;
+    };
+    self: {
+        id: string;
+        role: string|undefined;
+    };
+    initialMessage: Message;
 }
 
 export default class Messages {
@@ -82,12 +98,13 @@ export default class Messages {
                 additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger) ?? [],
                 initials: row.kuerzel,
                 date: row.DatumUnix * 1000,
-                unread: row.unread !== undefined
+                unread: row.unread !== undefined,
+                replies: []
             }
         });
     }
 
-    async fetchChatMessages(uuid: string) {
+    async fetchChatMessages(uuid: string): Promise<ChatDetails> {
         const formData = new URLSearchParams();
         formData.append("a", "read");
         formData.append("uniqid", await this.session.crypto.encryptAES(uuid, this.session.sessionKey));
@@ -117,7 +134,7 @@ export default class Messages {
         };
     }
 
-    async hideMessage(uuid: string) {
+    async hideMessage(uuid: string): Promise<boolean> {
         const formData = new URLSearchParams();
         formData.append("a", "deleteAll");
         formData.append("uniqid", uuid);
@@ -132,7 +149,7 @@ export default class Messages {
         return await req.text() === "true";
     }
 
-    async showMessage(uuid: string) {
+    async showMessage(uuid: string): Promise<boolean> {
         const formData = new URLSearchParams();
         formData.append("a", "recycleMsg");
         formData.append("uniqid", uuid);
@@ -147,7 +164,7 @@ export default class Messages {
         return await req.text() === "true";
     }
 
-    async searchReceiver(query: string) {
+    async searchReceiver(query: string): Promise<Receiver[]> {
         if (query.length < 2)
             throw new SPHError(ErrorCode.MinLengthForQuery)
 
@@ -159,10 +176,17 @@ export default class Messages {
         const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php?"
             + formData.toString());
 
-        return await req.json();
+        return (await req.json()).items.map((i: any) => {
+            const roleRaw = i.logo.replace("fa fa-", "");
+            return {
+                name: i.text,
+                id: i.id,
+                role: (roleRaw === "users" || roleRaw === "child") ? "student" : (roleRaw === "user-circle" ? "parent" : (roleRaw === "user" ? "teacher" : undefined))
+            }
+        });
     }
 
-    async createNewChat(receivers: string[], subject: string, content: string, type = undefined) {
+    async createNewChat(receivers: string[], subject: string, content: string, type = undefined): Promise<string> {
         const messageData = [];
         receivers.forEach(receiver => {
             messageData.push({name: "to[]", value: receiver});
@@ -199,7 +223,8 @@ export default class Messages {
         return data.id;
     }
 
-    async replyToChat(uuid: string, content: string, receiver: string = "all") {const formData = new URLSearchParams();
+    async replyToChat(uuid: string, content: string, receiver: string = "all"): Promise<string> {
+        const formData = new URLSearchParams();
         formData.append("a", "reply");
         formData.append("c", await this.session.crypto.encryptAES(JSON.stringify({
             to: receiver, // Muss genauer erproben wie sich das in der Nachricht wiederspiegelt
@@ -261,7 +286,7 @@ export default class Messages {
             subject: Utils.unescapeHTML(msg.Betreff),
             date: Utils.parseStringDate(msg.Datum),
             content: Utils.unescapeHTML(msg.Inhalt.replaceAll("<br />", "")),
-            receivers: this.#parseAdditionalReceivers(msg.empf.join()) ?? [],
+            receivers: this.#parseAdditionalReceivers(msg.empf === "" ? undefined : msg.empf.join()) ?? [],
             additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger) ?? [],
             users: {
                 students: msg.statistik.teilnehmer,

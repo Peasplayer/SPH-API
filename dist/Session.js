@@ -67,7 +67,7 @@ export default class Session {
         const response = await request.json();
         function getAlert(id) {
             return response[id].show ? {
-                alerts: response[id].preview,
+                alerts: response[id].preview.toString(),
                 texts: response[id].preshow?.map((t) => HTMLParser.parse(t).textContent.trim()),
             } : undefined;
         }

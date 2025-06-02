@@ -12,8 +12,8 @@ export default class SubstitutionPlan {
         parsed.removeWhitespace();
         const content = parsed.querySelector("#content .row div");
         if (content == null)
-            return undefined;
-        const subPlans = content.childNodes.filter((cn) => cn.nodeType === 1)
+            return [];
+        return content.childNodes.filter((cn) => cn.nodeType === 1)
             .filter((child) => child.id.startsWith("tag")).map((child) => {
             const sPlan = child.querySelector(".panel-body table");
             if (sPlan == null)
@@ -53,6 +53,5 @@ export default class SubstitutionPlan {
                 }
             };
         }).filter(s => s !== undefined);
-        return subPlans;
     }
 }

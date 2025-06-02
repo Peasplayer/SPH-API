@@ -77,7 +77,7 @@ export default class MyLessons {
         this.session = session;
     }
 
-    async fetchCurrentEntries() {
+    async fetchCurrentEntries(): Promise<PreviewBook[]> {
         const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php", { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text());
         parsed.removeWhitespace();
@@ -136,7 +136,7 @@ export default class MyLessons {
         return current;
     }
 
-    async fetchBookEntries(bookId: string) {
+    async fetchBookEntries(bookId: string): Promise<DetailsBook> {
         const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/meinunterricht.php?a=sus_view&id=" + bookId, { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text(), { parseNoneClosedTags: true });
         parsed.removeWhitespace();
@@ -207,7 +207,7 @@ export default class MyLessons {
         return await request.blob();
     }
 
-    async checkHomework(bookId: string, entryId: string, done: boolean) {
+    async checkHomework(bookId: string, entryId: string, done: boolean): Promise<boolean> {
         const formData = new URLSearchParams();
         formData.append("a", "sus_homeworkDone");
         formData.append("b", done ? "done" : "undone");

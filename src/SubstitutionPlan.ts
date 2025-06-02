@@ -23,17 +23,17 @@ export default class SubstitutionPlan {
         this.session = session;
     }
 
-    async fetchSubstitutionPlan() {
+    async fetchSubstitutionPlan(): Promise<SubstitutionPlanDay[]> {
         const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/vertretungsplan.php", { headers: Session.Headers });
         const parsed = HTMLParser.parse(await req.text());
         parsed.removeWhitespace();
 
         const content = parsed.querySelector("#content .row div")
         if (content == null)
-            return undefined;
+            return [];
 
-        const subPlans: SubstitutionPlanDay[] = content.childNodes.filter((cn: Node) => cn.nodeType === 1)
-            .filter((child: HTMLElement) => child.id.startsWith("tag")).map((child: HTMLElement): SubstitutionPlanDay|undefined => {
+        return content.childNodes.filter((cn: Node) => cn.nodeType === 1)
+            .filter((child: HTMLElement) => child.id.startsWith("tag")).map((child: HTMLElement): SubstitutionPlanDay | undefined => {
                 const sPlan = child.querySelector(".panel-body table");
                 if (sPlan == null)
                     return undefined;
@@ -44,7 +44,7 @@ export default class SubstitutionPlan {
 
                 let entries: (string | undefined)[][] = [];
                 const tableBody = sPlan.querySelector("tbody");
-                if (sPlan.querySelector("tbody .alert-warning") === null && tableBody !== null)  {
+                if (sPlan.querySelector("tbody .alert-warning") === null && tableBody !== null) {
                     entries = tableBody.querySelectorAll("tr").map((row: HTMLElement) =>
                         row.querySelectorAll("td").map((cell: HTMLElement) => {
                             const value = cell.textContent.trim()
@@ -59,7 +59,7 @@ export default class SubstitutionPlan {
                         fields: sPlan.querySelector("thead tr")?.querySelectorAll("th")?.map((cn: HTMLElement) => {
                             const field = cn.getAttribute("data-field");
                             if (field === undefined) return undefined;
-                            return { key: field, name: cn.textContent.trim() }
+                            return {key: field, name: cn.textContent.trim()}
                         })?.filter(f => f !== undefined) ?? [],
                         entries
                     },
@@ -75,7 +75,5 @@ export default class SubstitutionPlan {
                     }
                 };
             }).filter(s => s !== undefined);
-
-        return subPlans;
     }
 }

@@ -18,5 +18,5 @@ export interface SubstitutionPlanDay {
 export default class SubstitutionPlan {
     session: Session;
     constructor(session: Session);
-    fetchSubstitutionPlan(): Promise<SubstitutionPlanDay[] | undefined>;
+    fetchSubstitutionPlan(): Promise<SubstitutionPlanDay[]>;
 }

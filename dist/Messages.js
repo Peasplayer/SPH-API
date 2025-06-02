@@ -36,7 +36,8 @@ export default class Messages {
                 additionalReceivers: this.#parseAdditionalReceivers(row.WeitereEmpfaenger) ?? [],
                 initials: row.kuerzel,
                 date: row.DatumUnix * 1000,
-                unread: row.unread !== undefined
+                unread: row.unread !== undefined,
+                replies: []
             };
         });
     }
@@ -96,7 +97,14 @@ export default class Messages {
         formData.append("a", "searchRecipt");
         const req = await this.session.fetchWrapper.fetch("https://start.schulportal.hessen.de/nachrichten.php?"
             + formData.toString());
-        return await req.json();
+        return (await req.json()).items.map((i) => {
+            const roleRaw = i.logo.replace("fa fa-", "");
+            return {
+                name: i.text,
+                id: i.id,
+                role: (roleRaw === "users" || roleRaw === "child") ? "student" : (roleRaw === "user-circle" ? "parent" : (roleRaw === "user" ? "teacher" : undefined))
+            };
+        });
     }
     async createNewChat(receivers, subject, content, type = undefined) {
         const messageData = [];
@@ -181,7 +189,7 @@ export default class Messages {
             subject: Utils.unescapeHTML(msg.Betreff),
             date: Utils.parseStringDate(msg.Datum),
             content: Utils.unescapeHTML(msg.Inhalt.replaceAll("<br />", "")),
-            receivers: this.#parseAdditionalReceivers(msg.empf.join()) ?? [],
+            receivers: this.#parseAdditionalReceivers(msg.empf === "" ? [] : msg.empf.join()) ?? [],
             additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger) ?? [],
             users: {
                 students: msg.statistik.teilnehmer,

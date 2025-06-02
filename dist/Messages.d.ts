@@ -1,6 +1,7 @@
 import Session from "./Session.js";
 export interface Receiver {
     name: string;
+    id?: string;
     role: string | undefined;
 }
 export interface Message {
@@ -34,30 +35,31 @@ export interface Message {
     initials?: string;
     date: number;
     unread: boolean;
-    replies?: Message[];
+    replies: Message[];
+}
+export interface ChatDetails {
+    date: number;
+    options: {
+        groupOnly: boolean;
+        privateAnswerOnly: boolean;
+        noAnswerAllowed: boolean;
+        allowSuSToSuSMessages: boolean;
+    };
+    self: {
+        id: string;
+        role: string | undefined;
+    };
+    initialMessage: Message;
 }
 export default class Messages {
     #private;
     session: Session;
     constructor(session: Session);
     fetchChats(filter?: string): Promise<Message[]>;
-    fetchChatMessages(uuid: string): Promise<{
-        date: number;
-        options: {
-            groupOnly: boolean;
-            privateAnswerOnly: boolean;
-            noAnswerAllowed: boolean;
-            allowSuSToSuSMessages: boolean;
-        };
-        self: {
-            id: any;
-            role: string | undefined;
-        };
-        initialMessage: Message;
-    }>;
+    fetchChatMessages(uuid: string): Promise<ChatDetails>;
     hideMessage(uuid: string): Promise<boolean>;
     showMessage(uuid: string): Promise<boolean>;
-    searchReceiver(query: string): Promise<any>;
-    createNewChat(receivers: string[], subject: string, content: string, type?: undefined): Promise<any>;
-    replyToChat(uuid: string, content: string, receiver?: string): Promise<any>;
+    searchReceiver(query: string): Promise<Receiver[]>;
+    createNewChat(receivers: string[], subject: string, content: string, type?: undefined): Promise<string>;
+    replyToChat(uuid: string, content: string, receiver?: string): Promise<string>;
 }
