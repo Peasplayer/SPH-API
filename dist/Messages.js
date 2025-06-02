@@ -189,7 +189,7 @@ export default class Messages {
             subject: Utils.unescapeHTML(msg.Betreff),
             date: Utils.parseStringDate(msg.Datum),
             content: Utils.unescapeHTML(msg.Inhalt.replaceAll("<br />", "")),
-            receivers: this.#parseAdditionalReceivers(msg.empf === "" ? [] : msg.empf.join()) ?? [],
+            receivers: this.#parseAdditionalReceivers(msg.empf === "" ? undefined : msg.empf.join()) ?? [],
             additionalReceivers: this.#parseAdditionalReceivers(msg.WeitereEmpfaenger) ?? [],
             users: {
                 students: msg.statistik.teilnehmer,
